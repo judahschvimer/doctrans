@@ -17,16 +17,22 @@
 ~/mosesdecoder/scripts/training/clean-corpus-n.perl ~/corpus/skunkworks.es-en.true es en ~/corpus/skunkworks.es-en.clean 1 80
 
 # create lm
+if [ -d "~/lm" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  rm -rf ~/lm
+fi
 mkdir ~/lm
 cd ~/lm
-~/irstlm/bin/add-start-end.sh < ~/corpus/skunkworks.es-en.true.es > skunkworks.es-en.sb.es
-export IRSTLM=$HOME/irstlm; ~/irstlm/bin/build-lm.sh -i skunkworks.es-en.sb.es -t ./tmp -p -s improved-kneser-ney -o skunkworks.es-en.lm.es
+~/irstlm/add-start-end.sh < ~/corpus/skunkworks.es-en.true.es > skunkworks.es-en.sb.es
+export IRSTLM=/usr/local/lib/irstlm; ~/irstlm/build-lm.sh -i skunkworks.es-en.sb.es -t ./tmp -p -s improved-kneser-ney -o skunkworks.es-en.lm.es
 
 # create arpa
-~/irstlm/bin/compile-lm --text yes skunkworks.es-en.lm.es.gz skunkworks.es-en.arpa.es
+~/irstlm/compile-lm --text yes skunkworks.es-en.lm.es.gz skunkworks.es-en.arpa.es
+
+#~/irstlm/compile-lm skunkworks.es-en.lm.es.gz skunkworks.es-en.blm.es
 
 # create blm
-~/irstlm/bin/compile-lm skunkworks.es-en.lm.es.gz skunkworks.es-en.blm.es
+#~/irstlm/compile-lm skunkworks.es-en.lm.es.gz skunkworks.es-en.blm.es
 
 # binarize arpa file
 ~/mosesdecoder/bin/build_binary skunkworks.es-en.arpa.es skunkworks.es-en.blm.es
@@ -38,6 +44,10 @@ echo "is this an English sentence ?" | ~/mosesdecoder/bin/query skunkworks.es-en
 #  training the translation engine    #
 #							10:52										#
 #######################################
+if [ -d "~/working" ]; then
+  # Control will enter here if $DIRECTORY exists.
+  rm -rf ~/working
+fi
 mkdir ~/working
 cd ~/working
 nohup ~/mosesdecoder/scripts/training/train-model.perl -root-dir train -corpus ~/corpus/skunkworks.es-en.clean -f en -e es -alignment grow-diag-final-and -reordering msd-bidirectional-fe -lm 0:3:$HOME/lm/skunkworks.es-en.blm.es:8 -external-bin-dir $HOME/mosesdecoder/tools -cores 12 --parallel >& training.out &

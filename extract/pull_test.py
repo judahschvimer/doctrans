@@ -47,7 +47,8 @@ def extract_source(path):
 
 
 def main():
-    extract_source(sys.argv[1])
+    # extract_source(sys.argv[1])
+    extract_translated_entries()
 
 if __name__ == "__main__":
     main()
