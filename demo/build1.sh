@@ -1,4 +1,4 @@
-#tokenisation
+sation
 ~/mosesdecoder/scripts/tokenizer/tokenizer.perl -l en < ~/corpus/training/skunkworks.es-en.en > ~/corpus/skunkworks.es-en.tok.en -threads 12
 
 ~/mosesdecoder/scripts/tokenizer/tokenizer.perl -l es < ~/corpus/training/skunkworks.es-en.es > ~/corpus/skunkworks.es-en.tok.es -threads 12
@@ -33,7 +33,7 @@ echo "Is this a Spanish sentance?" | ~/mosesdecoder/bin/query /home/judah/lm/sku
 
 #######################################
 #  training the translation engine    #
-#                           10:52                                       #
+#                           10:52     #
 #######################################
 rm -rf ~/working
 mkdir ~/working
@@ -57,10 +57,10 @@ nohup nice ~/mosesdecoder/scripts/training/mert-moses.pl ~/corpus/news-commentar
 # binarising the model
 mkdir ~/working/binarised-model
 cd ~/working
-#~/mosesdecoder/bin/processPhraseTable  -ttable 0 0 train/model/phrase-table.gz -nscores 5 -out binarised-model/phrase-table
-#~/mosesdecoder/bin/processLexicalTable -in train/model/reordering-table.wbe-msd-bidirectional-fe.gz -out binarised-model/reordering-table
-#cp ~/working/train/model/moses.ini ~/working/binarised-model
-#sed -i 's/PhraseDictionaryMemory/PhraseDictionaryBinary/' ~/working/binarised-model/moses.ini
-#sed -i 's/train\/model/binarized-model/' ~/working/binarised-model/moses.ini
+~/mosesdecoder/bin/processPhraseTable  -ttable 0 0 train/model/phrase-table.gz -nscores 5 -out binarised-model/phrase-table
+~/mosesdecoder/bin/processLexicalTable -in train/model/reordering-table.wbe-msd-bidirectional-fe.gz -out binarised-model/reordering-table
+cp ~/working/train/model/moses.ini ~/working/binarised-model
+sed -i 's/PhraseDictionaryMemory/PhraseDictionaryBinary/' ~/working/binarised-model/moses.ini
+sed -i 's/train\/model/binarized-model/' ~/working/binarised-model/moses.ini
 
-#~/mosesdecoder/bin/moses -f ~/working/train/model/moses.ini
+~/mosesdecoder/bin/moses -f ~/working/train/model/moses.ini
