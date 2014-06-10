@@ -1,35 +1,39 @@
-#tokenisation
-~/mosesdecoder/scripts/tokenizer/tokenizer.perl -l en < ~/corpus/EnEsText/KDE4.en-es.en > ~/corpus/KDE4.es-en.tok.en -threads 12
+# tokenisation
+~/mosesdecoder/scripts/tokenizer/tokenizer.perl -l en < ~/corpus/kde4/kde4.es-en.en > ~/corpus/kde4.es-en.tok.en -threads 12
 
-~/mosesdecoder/scripts/tokenizer/tokenizer.perl -l es < ~/corpus/EnEsText/KDE4.en-es.es > ~/corpus/KDE4.es-en.tok.es -threads 12
+~/mosesdecoder/scripts/tokenizer/tokenizer.perl -l es < ~/corpus/kde4/kde4.es-en.es > ~/corpus/kde4.es-en.tok.es -threads 12
 
-# truecasing
-~/mosesdecoder/scripts/recaser/train-truecaser.perl --model ~/corpus/truecase-model.en --corpus ~/corpus/KDE4.es-en.tok.en
+# train truecaser and make truecase model based on corpus
+~/mosesdecoder/scripts/recaser/train-truecaser.perl --model ~/corpus/truecase-model.en --corpus ~/corpus/kde4.es-en.tok.en
 
-~/mosesdecoder/scripts/recaser/train-truecaser.perl --model ~/corpus/truecase-model.es --corpus ~/corpus/KDE4.es-en.tok.es
+~/mosesdecoder/scripts/recaser/train-truecaser.perl --model ~/corpus/truecase-model.es --corpus ~/corpus/kde4.es-en.tok.es
 
-# recasing
-~/mosesdecoder/scripts/recaser/truecase.perl --model ~/corpus/truecase-model.en < ~/corpus/KDE4.es-en.tok.en > ~/corpus/KDE4.es-en.true.en
+# truecase the corpus
+~/mosesdecoder/scripts/recaser/truecase.perl --model ~/corpus/truecase-model.en < ~/corpus/kde4.es-en.tok.en > ~/corpus/kde4.es-en.true.en
 
-~/mosesdecoder/scripts/recaser/truecase.perl --model ~/corpus/truecase-model.es < ~/corpus/KDE4.es-en.tok.es > ~/corpus/KDE4.es-en.true.es
+~/mosesdecoder/scripts/recaser/truecase.perl --model ~/corpus/truecase-model.es < ~/corpus/kde4.es-en.tok.es > ~/corpus/kde4.es-en.true.es
 
 # truncate sentence length to 80 chars
-~/mosesdecoder/scripts/training/clean-corpus-n.perl ~/corpus/KDE4.es-en.true es en ~/corpus/KDE4.es-en.clean 1 80
+~/mosesdecoder/scripts/training/clean-corpus-n.perl ~/corpus/kde4.es-en.true es en ~/corpus/kde4.es-en.clean 1 80
 
 # create lm
 rm -rf ~/lm
 mkdir ~/lm
 cd ~/lm
-~/irstlm/add-start-end.sh < ~/corpus/KDE4.es-en.true.es > KDE4.es-en.sb.es
-export IRSTLM=/usr/local/lib/irstlm; ~/irstlm/build-lm.sh -i KDE4.es-en.sb.es -t ./tmp -p -s improved-kneser-ney -o KDE4.es-en.lm.es
+# add sentance boundary symbols and create sb file
+~/irstlm/add-start-end.sh < ~/corpus/kde4.es-en.true.es > kde4.es-en.sb.es
+export IRSTLM=/usr/local/lib/irstlm;
+# generate language model into an iARPA file
+~/irstlm/build-lm.sh -i kde4.es-en.sb.es -t ./tmp -p -s improved-kneser-ney -o kde4.es-en.ilm.es.gz
 
-# create arpa
-~/irstlm/compile-lm --text  KDE4.es-en.lm.es.gz KDE4.es-en.arpa.es
+# create ARPA from iARPA
+~/irstlm/compile-lm --text  kde4.es-en.ilm.es.gz kde4.es-en.arpa.es
 
-# binarize arpa file
-~/mosesdecoder/bin/build_binary KDE4.es-en.arpa.es KDE4.es-en.blm.es
+# binarize ARPA file for faster use
+~/mosesdecoder/bin/build_binary kde4.es-en.arpa.es kde4.es-en.blm.es
 
-echo "Is this a Spanish sentance?" | ~/mosesdecoder/bin/query /home/judah/lm/KDE4.es-en.blm.es
+# test the language model
+echo "Is this a Spanish sentance?" | ~/mosesdecoder/bin/query /home/judah/lm/kde4.es-en.blm.es
 
 #######################################
 #  training the translation engine    #
@@ -38,7 +42,8 @@ echo "Is this a Spanish sentance?" | ~/mosesdecoder/bin/query /home/judah/lm/KDE
 rm -rf ~/working
 mkdir ~/working
 cd ~/working
-nohup ~/mosesdecoder/scripts/training/train-model.perl -root-dir train -corpus ~/corpus/KDE4.es-en.clean -f en -e es  -alignment grow-diag-final-and -reordering msd-bidirectional-fe -lm 0:3:$HOME/lm/KDE4.es-en.blm.es:8 -mgiza -external-bin-dir $HOME/mosesdecoder/tools  -cores 12 --parallel --parts 3  >& training.out &
+#trains the model with the parameters as explained in the readme in parallel
+nohup nice -n 15 time ~/mosesdecoder/scripts/training/train-model.perl -root-dir train -corpus ~/corpus/kde4.es-en.clean -f en -e es --score-options '--GoodTuring'  -alignment grow-diag-final-and -reordering hier-mslr-bidirectional-fe -lm 0:3:$HOME/lm/kde4.es-en.blm.es:8 -mgiza -external-bin-dir $HOME/mosesdecoder/tools  -cores 12 --parallel --parts 3 2>&1 > training.out; mail -s "Training Done" judah.schvimer@mongodb.com <<< "Training the model is Done"  &
 
 
 ######################################
@@ -52,9 +57,10 @@ cd ~/corpus
 ~/mosesdecoder/scripts/recaser/truecase.perl --model truecase-model.en < skunkworks.es-en.tok.en > skunkworks.es-en.true.en
 
 cd ~/working
-nohup nice ~/mosesdecoder/scripts/training/mert-moses.pl ~/corpus/skunkworks.es-en.true.en ~/corpus/skunkworks.es-en.true.es ~/mosesdecoder/bin/moses --decoder-flags="-threads 12" train/model/moses.ini ~mertdir ~mosesdeecoder/bin/ &> mert.out &
+nohup nice -n 15 time ~/mosesdecoder/scripts/training/mert-moses.pl ~/corpus/skunkworks.es-en.true.en ~/corpus/skunkworks.es-en.true.es ~/mosesdecoder/bin/moses --decoder-flags="-threads 12" train/model/moses.ini --mertdir ~/mosesdecoder/bin/ 2>&1 > mert.out; mail -s "Tuning Done" judah.schvimer@mongodb.com <<< "Tuning the model is done" &
 
-# binarising the model
+<<COMMENT1
+# binarising the model (if untuned)
 mkdir ~/working/binarised-model
 cd ~/working
 ~/mosesdecoder/bin/processPhraseTable  -ttable 0 0 train/model/phrase-table.gz -nscores 5 -out binarised-model/phrase-table
@@ -62,5 +68,15 @@ cd ~/working
 cp ~/working/train/model/moses.ini ~/working/binarised-model
 sed -i 's/PhraseDictionaryMemory/PhraseDictionaryBinary/' ~/working/binarised-model/moses.ini
 sed -i 's/train\/model/binarized-model/' ~/working/binarised-model/moses.ini
+COMMENT1
 
-~/mosesdecoder/bin/moses  -f  ~/working/train/model/moses.ini 
+# binarise the model (if tuned)
+mkdir ~/working/binarised-model
+cd ~/working
+~/mosesdecoder/bin/processPhraseTable  -ttable 0 0 train/model/phrase-table.gz -nscores 5 -out binarised-model/phrase-table
+~/mosesdecoder/bin/processLexicalTable -in train/model/reordering-table.wbe-msd-bidirectional-fe.gz -out binarised-model/reordering-table
+cp ~/working/mert-work/moses.ini ~/working/binarised-model
+sed -i 's/PhraseDictionaryMemory/PhraseDictionaryBinary/' ~/working/binarised-model/moses.ini
+sed -i 's/mert-work/binarized-model/' ~/working/binarised-model/moses.ini
+
+~/mosesdecoder/bin/moses  -f  ~/working/train/model/moses.ini
