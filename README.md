@@ -49,6 +49,21 @@ Make sure when using the “--text” flag (as described in the directions) to N
 Step 7: 
 When running, run with bash, not just sh
 
+To test, go into the working/train/ folder and run:
+grep ' document ' model/lex.f2e | sort -nrk 3 | head
+
+
+For EMS:
+Follow this: http://www.statmt.org/moses/?n=FactoredTraining.EMS
+sudo apt-get install imagemagick libmagickcore-dev
+wget gv to install ghostview. Follow the Install readme for how to install. You may need xaw3gd, which you can get as shown below:
+sudo apt-get install xaw3dg-dev
+
+get KDE4 from here:
+http://opus.lingfil.uu.se/KDE4.php
+
+
+
 
 
 

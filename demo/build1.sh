@@ -1,4 +1,4 @@
-sation
+#tokenisation
 ~/mosesdecoder/scripts/tokenizer/tokenizer.perl -l en < ~/corpus/training/skunkworks.es-en.en > ~/corpus/skunkworks.es-en.tok.en -threads 12
 
 ~/mosesdecoder/scripts/tokenizer/tokenizer.perl -l es < ~/corpus/training/skunkworks.es-en.es > ~/corpus/skunkworks.es-en.tok.es -threads 12
@@ -38,7 +38,7 @@ echo "Is this a Spanish sentance?" | ~/mosesdecoder/bin/query /home/judah/lm/sku
 rm -rf ~/working
 mkdir ~/working
 cd ~/working
-nohup ~/mosesdecoder/scripts/training/train-model.perl -root-dir train -corpus ~/corpus/skunkworks.es-en.clean -f en -e es -alignment grow-diag-final-and -reordering msd-bidirectional-fe -lm 0:3:$HOME/lm/skunkworks.es-en.blm.es:8 -mgiza -external-bin-dir $HOME/mosesdecoder/tools  -cores 12 --parallel >& training.out &
+nohup ~/mosesdecoder/scripts/training/train-model.perl -root-dir train -corpus ~/corpus/skunkworks.es-en.clean -f en -e es --score-options '--GoodTuring'  -alignment grow-diag-final-and -reordering msd-bidirectional-fe -lm 0:3:$HOME/lm/skunkworks.es-en.blm.es:8 -mgiza -external-bin-dir $HOME/mosesdecoder/tools  -cores 12 --parallel --parts 3  >& training.out &
 
 
 ######################################
@@ -49,10 +49,10 @@ cd ~/corpus
 ~/mosesdecoder/scripts/tokenizer/tokenizer.perl -l en < tuning/news-commentary-v8.es-en.en > news-commentary-v8.es-en.tok.en -threads 12
 
 ~/mosesdecoder/scripts/recaser/truecase.perl --model truecase-model.es < news-commentary-v8.es-en.tok.es > news-commentary-v8.es-en.true.es
-~/mosesdecoder/scripts/recaser/truecase.perl --model truecase-model.en < news-commentary-v8.es-en.tok.en > news-commentary-v8.es-en.true.en
+~/mosesdecoder/scripts/recaser/truecase.perl --model truecase-model.en < news-commentary-v8.es-en.tok.en >news-commentary-v8.es-en.true.en
 
 cd ~/working
-nohup nice ~/mosesdecoder/scripts/training/mert-moses.pl ~/corpus/news-commentary-v8.es-en.true.en ~/corpus/news-commentary-v8.es-en.true.es ~/mosesdecoder/bin/moses --decoder-flags="-threads 12" train/model/moses.ini ~mertdir ~mosesdeecoder/bin/ &> mert.out &
+nohup nice ~/mosesdecoder/scripts/training/mert-moses.pl ~/corpus/news-commentary-v8.es-en.true.en ~/corpus/news-commentary-v8.es-en.true.es ~/mosesdecoder/bin/moses --decoder-flags="-threads 12" train/model/moses.ini ~mertdir ~mosesdecoder/bin/ &> mert.out &
 
 # binarising the model
 mkdir ~/working/binarised-model
@@ -63,4 +63,4 @@ cp ~/working/train/model/moses.ini ~/working/binarised-model
 sed -i 's/PhraseDictionaryMemory/PhraseDictionaryBinary/' ~/working/binarised-model/moses.ini
 sed -i 's/train\/model/binarized-model/' ~/working/binarised-model/moses.ini
 
-~/mosesdecoder/bin/moses -f ~/working/train/model/moses.ini
+~/mosesdecoder/bin/moses  -f  ~/working/train/model/moses.ini 
