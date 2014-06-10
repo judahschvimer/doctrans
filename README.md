@@ -30,8 +30,8 @@ If not already installed, you may need to install cmake for this to work
 Make a tools/ directory in mosesdecoder and put all of the files in the mgiza bin/ directory in it
 also include merge_alignment.py abd sbt2cooc.pl rom the mgiza scripts/ directory
 Finally if it doesn’t work, try to add a file called snt2cooc.out with the following in it:
-${0%/*}/snt2cooc /dev/stdout $1
-$2 $3
+#   ${0%/*}/snt2cooc /dev/stdout $1
+#   $2 $3
 
 Step 4:
 Scrape MongoDB docs for Spanish text
@@ -62,8 +62,26 @@ sudo apt-get install xaw3dg-dev
 get KDE4 from here:
 http://opus.lingfil.uu.se/KDE4.php
 
+Stuff To Know:
+Tokenizing- splitting every meaningful linguistic object into a new word. This primarily separates off punctuation
+Truecasing- the process of turning everything to a standard case. For most words this means making them lower case, but for others, like MongoDB, it keeps them capitalized but in a standard form. After translation you must go back through (recasing) and make sure the capitalization is correct for the language used. The truecaser first needs to be trained to create the truecase-model before it can be used. The trainer counts the number of times each word is in each form and chooses the most common one as the standard form.
+Cleaning- removes long and empty sentances which can cause problems and mis-alignment. Numbers at end are minimum line size and maximum line size: clean-corpus-n.perl CORPUS L1 L2 OUT MIN MAX
+Language Model- ensures fluent output, so it is built with the target language in mind. Perplexity is a measure of how probable the language model is. IRSTLM computes the perplexity of the test set. The language model counts n-gram frequencies and also estimates smoothing parameters.
+    add-start-end.sh: adds sentance boundary symbols to amke it easier to parse. This creates the sb file.
+    build-lm.sh: generates the language model. -i is the input sb file, -o is the output  LM file, -t is a directory for temp files, -p is to prune singleton n-grams, -s is the smoothing method, -n is the order of the language model. The output theoretically is an iARPA file with a .ilm.gz extension, though moses says to use .lm.es. This step may be run in parallel with build-lm-qsub.sh 
+    compile-lm.sh: turns the iARPA into an ARPA file. It appears you need the --text flag alone to make it work properly. 
+    build_binary: binarizes the arpa file so it's faster to use
+    More info on IRSTLM here: http://hermes.fbk.eu/people/bertoldi/teaching/lab_2010-2011/img/irstlm-manual.pdf
 
-
+Training- teaches the model how to make good translations. This uses the MGIZA++ word alignment tool which can be run multi-threaded. Want to use a factored translation model since they perform better and take into account parts of speech. Translation step on the phrasal level and then generation step on the word level to choose the right word in the target langauge.
+    nohup- makes sure that training is not interrupted when done over SSH
+    nice- makes sure the training doens't hold up the entire computer. run with "nice -n 15"
+    -f is the "foreign language" which is the source language
+    -e is the "english language" which is the target language. This comes from the convention of translating INTO english, not out of as we are doing.
+    More info on training is available here:
+    http://www.statmt.org/moses/?n=Moses.FactoredTutorial
+    http://www.statmt.org/moses/?n=FactoredTraining.TrainingParameters
+    
 
 
 
