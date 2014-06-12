@@ -21,13 +21,13 @@ rm -rf ~/lm
 mkdir ~/lm
 cd ~/lm
 #add sentance boundary symbols and create sb file
-~/irstlm/add-start-end.sh < ~/corpus/skunkworks.es-en.true.es > skunkworks.es-en.sb.es
-export IRSTLM=/usr/local/lib/irstlm; 
+~/irstlm-5.80.03/add-start-end.sh < ~/corpus/skunkworks.es-en.true.es > skunkworks.es-en.sb.es
+export IRSTLM=/home/judah/irstlm; 
 #generate language model into an iARPA file
-~/irstlm/build-lm.sh -i skunkworks.es-en.sb.es -t ./tmp -p -s improved-kneser-ney -o skunkworks.es-en.lm.es
+~/irstlm-5.80.03/build-lm.sh -i skunkworks.es-en.sb.es -t ./tmp -p -s improved-kneser-ney -o skunkworks.es-en.lm.es
 
 # create ARPA from iARPA
-~/irstlm/compile-lm --text  skunkworks.es-en.lm.es.gz skunkworks.es-en.arpa.es
+~/irstlm-5.80.03/compile-lm --text  skunkworks.es-en.lm.es.gz skunkworks.es-en.arpa.es
 
 # binarize ARPA file for faster use
 ~/mosesdecoder/bin/build_binary skunkworks.es-en.arpa.es skunkworks.es-en.blm.es

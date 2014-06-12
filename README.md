@@ -3,7 +3,9 @@ demo: bash scripts  used for training, tuning, and running the translator
     2. tune.sh: tunes the model on the corpus in your home directory
     3. runTuned.sh: binarizes the files and runs the decoder if the model has been tuned
     4. runUntuned.sh: binarizes the files and runs the decoder if the model has not been tuned
-extract: python scripts to comb docs for corpus
+extract: python scripts to extract words for corpora
+    1. pull_test.py: pulls words from the po files in the mongo docs
+    2. split_dict.py: splits dictionaries from http://www.dicts.info/uddl.php into parallel corpora
 
 This may be of help http://www.statmt.org/moses_steps.html
 This also may be of help http://lintaka.wordpress.com/2014/01/17/installing-moses-decoder-on-ubuntu/
@@ -16,10 +18,11 @@ Clone Moses from Github
 To install it, ensure that Moses uses the correct Boost package
 
 Step 2:
-Install IRSTLM as explained here: http://lintaka.wordpress.com/2014/01/15/installing-irstlm-on-ubuntu/
+Install this IRSTLM: http://sourceforge.net/projects/irstlm/ (5.80.03)
+Follow these directions: http://www.statmt.org/moses/?n=FactoredTraining.BuildingLanguageModel#ntoc4
 In code, make sure that when you call “export IRSTLM=...” you direct it to the proper location
-Install Moses again with IRSTLM
-./bjam --with-irstlm=/usr/local/src/irstlm -j12
+Install Moses with IRSTLM
+./bjam --with-boost=~/boost_1_55_0 --with-irstlm=/home/judah/irstlm-5.80.03 -j12 -a
 
 Step 3:
 Install MGIZA as described here: http://www.statmt.org/moses/?n=Moses.ExternalTools#ntoc3
@@ -78,6 +81,7 @@ Training- teaches the model how to make good translations. This uses the MGIZA++
     -f is the "foreign language" which is the source language
     -e is the "english language" which is the target language. This comes from the convention of translating INTO english, not out of as we are doing.
     --parts n allows training on larger corpora, 3 is typical
+    --lm has three numbers, order, factor, and then the final number after the path. The final number corresponds to the type of language model used. 1 is for IRSTLM, 8 is for KenLM.
     --score-options used to score phrase translations with different metrics. goodturing is a good one
     the reordering model is important. a hierarchical model was shown in some studies to be the most accurate
 
@@ -87,6 +91,10 @@ Binarize the model-This makes it run faster
     -ttable for a standard configuration just use 0 0
     -nscores number of scores used in translation table, to find this, open phrase-table.gz (first use gunzip to unzip it), and then count how many scores there are at the end.
     sed searches and replaces
+    note that the extensions are purposefully left off of the replacements doen by sed.
+
+Running at the end is just one line. Use the detruecase.perl script to capitalize the beginnings of words appropriately
+detruecase.perl < in > out [--headline SGML]
 
 Use mail -s "Tuning Done" judah.schvimer@mongodb.com <<< "Tuning the model is done"  to find out when long running processes are done running 
 
@@ -94,7 +102,7 @@ Use mail -s "Tuning Done" judah.schvimer@mongodb.com <<< "Tuning the model is do
     http://www.statmt.org/moses/?n=Moses.FactoredTutorial
     http://www.statmt.org/moses/?n=FactoredTraining.TrainingParameters
     
-
+http://www.june29.com/idp/IDPfiles.html
 
 
 
