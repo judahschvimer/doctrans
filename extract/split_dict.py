@@ -23,7 +23,7 @@ def split_dict(in_f, from_f, to_f):
 def main():
     if len(sys.argv) !=  4:
         print("Usage: python split_dict.py <inFile> <fromFile> <toFile>")
-        sys.exit();
+        sys.exit()
     in_file_name = sys.argv[1]
     fpi = open(in_file_name)
     from_file_name = sys.argv[2]

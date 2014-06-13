@@ -1,0 +1,11 @@
+1
+Start_Time: 1402693561.85
+Order: 3
+Smoothing: witten-bell
+ScoreOptions: --GoodTuring
+Alignment: grow-final
+ReorderingModeltype: phrase
+ReorderingOrientation: msd
+ReorderingDirectionality: bidirectional
+ReorderingLanguage: fe
+ReorderingLen: 7

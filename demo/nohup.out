@@ -1,0 +1,29 @@
+Traceback (most recent call last):
+  File "test_params.py", line 2, in <module>
+    import timei
+ImportError: No module named timei
+No handlers could be found for logger "bash_command.pyc"
+mkdir /home/judah/archive/1
+
+
+mkdir /home/judah/archive/1/lm
+
+
+/home/judah/irstlm-5.80.03/bin/add-start-end.sh < /home/judah/corpus/kde4.es-en.true.es > /home/judah/archive/1/lm/kde4.es-en.sb.es
+
+
+/home/judah/irstlm-5.80.03/bin/build-lm.sh -i /home/judah/archive/1/lm/kde4.es-en.sb.es -t /home/judah/archive/1/lm/tmp -p -n 3 -s improved-kneser-ney -o /home/judah/archive/1/lm/kde4.es-en.ilm.es.gz
+Set IRSTLM environment variable with path to irstlm
+
+Traceback (most recent call last):
+  File "test_params.py", line 141, in <module>
+    main()
+  File "test_params.py", line 135, in main
+    run_config(c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7], c[8],1)
+  File "test_params.py", line 94, in run_config
+    pcommand("{0}/bin/build-lm.sh -i {5}/{1}.sb.{4} -t {5}/tmp -p -n {2} -s {3} -o {5}/{1}.ilm.{4}.gz".format(irstlm_path,train_name, l_order, l_smoothing, foreign, lm_path))
+  File "test_params.py", line 33, in pcommand
+    o=command(c)
+  File "/home/judah/doctrans/demo/bash_command.py", line 65, in command
+    raise CommandError(m)
+bash_command.CommandError: /home/judah/irstlm-5.80.03/bin/build-lm.sh -i /home/judah/archive/1/lm/kde4.es-en.sb.es -t /home/judah/archive/1/lm/tmp -p -n 3 -s improved-kneser-ney -o /home/judah/archive/1/lm/kde4.es-en.ilm.es.gz returned 2

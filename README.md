@@ -74,6 +74,7 @@ Language Model- ensures fluent output, so it is built with the target language i
     compile-lm.sh: turns the iARPA into an ARPA file. It appears you need the --text flag alone to make it work properly. 
     build_binary: binarizes the arpa file so it's faster to use
     More info on IRSTLM here: http://hermes.fbk.eu/people/bertoldi/teaching/lab_2010-2011/img/irstlm-manual.pdf
+    MAKE SURE TO ADD export IRSTLM=/home/judah/irstlm-5.80.03 TO YOUR .bash_profile, or write that every time you run it
 
 Training- teaches the model how to make good translations. This uses the MGIZA++ word alignment tool which can be run multi-threaded. Want to use a factored translation model since they perform better and take into account parts of speech. Translation step on the phrasal level and then generation step on the word level to choose the right word in the target langauge.
     nohup- makes sure that training is not interrupted when done over SSH
@@ -81,7 +82,10 @@ Training- teaches the model how to make good translations. This uses the MGIZA++
     -f is the "foreign language" which is the source language
     -e is the "english language" which is the target language. This comes from the convention of translating INTO english, not out of as we are doing.
     --parts n allows training on larger corpora, 3 is typical
-    --lm has three numbers, order, factor, and then the final number after the path. The final number corresponds to the type of language model used. 1 is for IRSTLM, 8 is for KenLM.
+    --lm factor:order:filename:type
+    factor= factor that the model is modeling. There are separate models for word, lemma, pos, morph
+    order= n-gram size
+    type=  the type of language model used. 1 is for IRSTLM, 8 is for KenLM.
     --score-options used to score phrase translations with different metrics. goodturing is a good one
     the reordering model is important. a hierarchical model was shown in some studies to be the most accurate
 
