@@ -27,3 +27,254 @@ Traceback (most recent call last):
   File "/home/judah/doctrans/demo/bash_command.py", line 65, in command
     raise CommandError(m)
 bash_command.CommandError: /home/judah/irstlm-5.80.03/bin/build-lm.sh -i /home/judah/archive/1/lm/kde4.es-en.sb.es -t /home/judah/archive/1/lm/tmp -p -n 3 -s improved-kneser-ney -o /home/judah/archive/1/lm/kde4.es-en.ilm.es.gz returned 2
+No handlers could be found for logger "bash_command.pyc"
+Traceback (most recent call last):
+  File "test_params.py", line 177, in <module>
+    main()
+  File "test_params.py", line 167, in main
+    pool_outputs = pool.map(run_star, config)
+  File "/usr/lib/python2.7/multiprocessing/pool.py", line 250, in map
+    return self.map_async(func, iterable, chunksize).get()
+  File "/usr/lib/python2.7/multiprocessing/pool.py", line 554, in get
+    raise self._value
+bash_command.CommandError: /home/judah/irstlm-5.80.03/bin/build-lm.sh -i /home/judah/archive/4/lm/kde4.es-en.sb.es -t /home/judah/archive/4/lm/tmp -p -n 3 -s improved-kneser-ney -o /home/judah/archive/4/lm/kde4.es-en.ilm.es.gz returned 2
+
+
+Set IRSTLM environment variable with path to irstlm
+
+No handlers could be found for logger "bash_command.pyc"
+No handlers could be found for logger "bash_command.pyc"
+No handlers could be found for logger "bash_command.pyc"
+No handlers could be found for logger "bash_command.pyc"
+No handlers could be found for logger "bash_command.pyc"
+No handlers could be found for logger "bash_command.pyc"
+No handlers could be found for logger "bash_command.pyc"
+No handlers could be found for logger "bash_command.pyc"
+No handlers could be found for logger "bash_command.pyc"
+No handlers could be found for logger "bash_command.pyc"
+No handlers could be found for logger "bash_command.pyc"
+No handlers could be found for logger "bash_command.pyc"
+No handlers could be found for logger "bash_command.pyc"
+No handlers could be found for logger "bash_command.pyc"
+No handlers could be found for logger "bash_command.pyc"
+No handlers could be found for logger "bash_command.pyc"
+No handlers could be found for logger "bash_command.pyc"
+No handlers could be found for logger "bash_command.pyc"
+No handlers could be found for logger "bash_command.pyc"
+No handlers could be found for logger "bash_command.pyc"
+No handlers could be found for logger "bash_command.pyc"
+No handlers could be found for logger "bash_command.pyc"
+Traceback (most recent call last):
+  File "test_params.py", line 177, in <module>
+    main()
+  File "test_params.py", line 167, in main
+    pool_outputs = pool.map(run_star, config)
+  File "/usr/lib/python2.7/multiprocessing/pool.py", line 250, in map
+    return self.map_async(func, iterable, chunksize).get()
+  File "/usr/lib/python2.7/multiprocessing/pool.py", line 554, in get
+    raise self._value
+bash_command.CommandError: mkdir /home/judah/archive/13 returned 1
+
+mkdir: cannot create directory ‘/home/judah/archive/1’: File exists
+
+mkdir: cannot create directory ‘/home/judah/archive/9’: File exists
+
+mkdir: cannot create directory ‘/home/judah/archive/12’: File exists
+
+mkdir: cannot create directory ‘/home/judah/archive/3’: File exists
+
+mkdir: cannot create directory ‘/home/judah/archive/10’: File exists
+
+mkdir: cannot create directory ‘/home/judah/archive/2’: File exists
+
+mkdir: cannot create directory ‘/home/judah/archive/6’: File exists
+
+mkdir: cannot create directory ‘/home/judah/archive/4’: File exists
+
+mkdir: cannot create directory ‘/home/judah/archive/5’: File exists
+
+mkdir: cannot create directory ‘/home/judah/archive/19’: File exists
+
+mkdir: cannot create directory ‘/home/judah/archive/16’: File exists
+
+mkdir: cannot create directory ‘/home/judah/archive/13’: File exists
+
+mkdir: cannot create directory ‘/home/judah/archive/20’: File exists
+
+mkdir: cannot create directory ‘/home/judah/archive/11’: File exists
+
+mkdir: cannot create directory ‘/home/judah/archive/7’: File exists
+
+mkdir: cannot create directory ‘/home/judah/archive/17’: File exists
+
+mkdir: cannot create directory ‘/home/judah/archive/22’: File exists
+
+mkdir: cannot create directory ‘/home/judah/archive/8’: File exists
+
+mkdir: cannot create directory ‘/home/judah/archive/21’: File exists
+
+mkdir: cannot create directory ‘/home/judah/archive/14’: File exists
+
+mkdir: cannot create directory ‘/home/judah/archive/15’: File exists
+
+mkdir: cannot create directory ‘/home/judah/archive/0’: File exists
+
+mkdir: cannot create directory ‘/home/judah/archive/23’: File exists
+
+mkdir: cannot create directory ‘/home/judah/archive/18’: File exists
+No handlers could be found for logger "bash_command.pyc"
+Traceback (most recent call last):
+  File "test_params.py", line 177, in <module>
+    main()
+  File "test_params.py", line 167, in main
+    pool_outputs = pool.map(run_star, config)
+  File "/usr/lib/python2.7/multiprocessing/pool.py", line 250, in map
+    return self.map_async(func, iterable, chunksize).get()
+  File "/usr/lib/python2.7/multiprocessing/pool.py", line 554, in get
+    raise self._value
+bash_command.CommandError: /home/judah/irstlm-5.80.03/bin/build-lm.sh -i /home/judah/archive/21/lm/kde4.es-en.sb.es -t /home/judah/archive/21/lm/tmp -p -n 3 -s witten-bell -o /home/judah/archive/21/lm/kde4.es-en.ilm.es.gz returned 2
+
+
+Set IRSTLM environment variable with path to irstlm
+
+No handlers could be found for logger "bash_command.pyc"
+Traceback (most recent call last):
+  File "test_params.py", line 178, in <module>
+    main()
+  File "test_params.py", line 168, in main
+    pool_outputs = pool.map(run_star, config)
+  File "/usr/lib/python2.7/multiprocessing/pool.py", line 250, in map
+    return self.map_async(func, iterable, chunksize).get()
+  File "/usr/lib/python2.7/multiprocessing/pool.py", line 554, in get
+    raise self._value
+bash_command.CommandError: /home/judah/irstlm-5.80.03/bin/build-lm.sh -i /home/judah/archive/23/lm/kde4.es-en.sb.es -t /home/judah/archive/23/lm/tmp -p -n 3 -s witten-bell -o /home/judah/archive/23/lm/kde4.es-en.ilm.es.gz returned 2
+
+
+Set IRSTLM environment variable with path to irstlm
+
+Traceback (most recent call last):
+  File "test_params.py", line 178, in <module>
+    main()
+  File "test_params.py", line 154, in main
+    os.environ['IRSTLM'] = irstlm_path
+NameError: global name 'os' is not defined
+
+
+trained
+tuned
+tested
+
+
+trained
+tuned
+tested
+
+
+trained
+tuned
+tested
+
+
+trained
+tuned
+tested
+
+
+trained
+tuned
+tested
+
+
+trained
+tuned
+tested
+
+
+trained
+tuned
+tested
+
+
+trained
+tuned
+tested
+
+
+trained
+tuned
+tested
+
+
+trained
+tuned
+tested
+
+
+trained
+tuned
+tested
+
+
+trained
+tuned
+tested
+
+
+trained
+tuned
+tested
+
+
+trained
+tuned
+tested
+
+
+trained
+tuned
+tested
+
+
+trained
+tuned
+tested
+
+
+trained
+tuned
+tested
+
+
+trained
+tuned
+tested
+
+
+trained
+tuned
+tested
+
+
+trained
+tuned
+tested
+
+
+trained
+tuned
+tested
+
+
+trained
+tuned
+tested
+
+
+trained
+tuned
+tested
+
+
+trained
+tuned
+tested
