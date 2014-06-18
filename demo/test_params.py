@@ -7,8 +7,8 @@ import multiprocessing
 from bash_command import command
 
 foreign = "es"
-threads = "2"
-pool_size = 30
+threads = "3"
+pool_size = 100
 corpora_path =  "/home/judah/corpus"
 train_name = "kde4.{0}-en".format(foreign) 
 training_path ="{0}/training/{1}".format(corpora_path,train_name) 
@@ -18,16 +18,17 @@ test_name = "mongo-docs-test.{0}-en".format(foreign)
 testing_path ="{0}/testing/{1}".format(corpora_path,test_name)
 moses_path = "/home/judah/mosesdecoder"
 irstlm_path = "/home/judah/irstlm-5.80.03" 
-archive_path = "/home/judah/archive"
+archive_path = "/home/judah/archive3"
+email = "judah.schvimer@10gen.com"
 
-order = ["3"]
+order = ["3", "4"]
 smoothing = ["improved-kneser-ney"]
-score_options = ["--GoodTuring"]
+score_options = ["", "--NoLex", "--OnlyDirect", "--GoodTuring", "--NoLex --OnlyDirect", "--NoLex --GoodTuring", "--OnlyDirect --GoodTuring", "--NoLex --OnlyDirect --GoodTuring"]
 alignment = [ "grow-diag-final-and"]
-reordering_modeltype = [ "wbe", "phrase", "hier"]
-reordering_orientation = [ "mslr", "msd", "monotonicity", "leftright"]
-reordering_directionality = ["bidirectional", "backward", "forward"] 
-reordering_language = ["fe", "f"]
+reordering_modeltype = [ "phrase", "hier"]
+reordering_orientation = [ "mslr", "msd"]
+reordering_directionality = ["bidirectional"] 
+reordering_language = ["fe"]
 max_phrase_length = ["7"]
 log_file=open("{0}/LOG.txt".format(archive_path), "w", 1)
 
@@ -117,6 +118,7 @@ def run_config(l_len, l_order, l_lang, l_direct, l_score, l_smoothing, l_align, 
     #Train the model
     train_start=time.time()
     
+    log(i_log, "Train_Start_Time = {0}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
     working_path = "{0}/{1}/working".format(archive_path,i)
     
     pcommand("mkdir {0}".format(working_path), c_log)
@@ -127,6 +129,7 @@ def run_config(l_len, l_order, l_lang, l_direct, l_score, l_smoothing, l_align, 
     
     #Tune the model
     tune_start=time.time()
+    log(i_log, "Tune_Start_Time = {0}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
     pcommand("{0}/scripts/training/mert-moses.pl {1}/{2}.true.en {1}/{2}.true.{3} {0}/bin/moses  {4}/train/model/moses.ini --working-dir {4}/mert-work --mertdir {0}/bin/ 2>&1 > {4}/mert.out".format(moses_path, corpora_path, tune_name, foreign, working_path), c_log) 
     log(i_log, "Tune_Time = {0}".format(str(time.time()-tune_start)))
     log(i_log, "Tune_Time_HMS = {0}".format(str(datetime.timedelta(seconds=(time.time()-tune_start)))))
@@ -134,6 +137,7 @@ def run_config(l_len, l_order, l_lang, l_direct, l_score, l_smoothing, l_align, 
     
     #Test the model
     test_start=time.time()
+    log(i_log, "Test_Start_Time = {0}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
     pcommand("{0}/scripts/training/filter-model-given-input.pl {3}/filtered-{1} {3}/mert-work/moses.ini {2}/{1}.true.en -Binarizer {0}/bin/processPhraseTable".format(moses_path, test_name, corpora_path, working_path), c_log)
     pcommand("{0}/bin/moses -f {1}/filtered-{3}/moses.ini  < {2}/{3}.true.en > {1}/{3}.translated.{4} 2> {1}/{3}.out".format(moses_path, working_path, corpora_path, test_name, foreign), c_log)
     c=pcommand("{0}/scripts/generic/multi-bleu.perl -lc {1}/{2}.true.{4} < {3}/{2}.translated.{4}".format(moses_path, corpora_path, test_name, working_path, foreign), c_log)
@@ -142,6 +146,7 @@ def run_config(l_len, l_order, l_lang, l_direct, l_score, l_smoothing, l_align, 
     log(i_log, "Test_Time = {0}".format(str(time.time()-test_start)))
     log(i_log, "Test_Time_HMS = {0}".format(str(datetime.timedelta(seconds=(time.time()-test_start)))))
     log(i_log, "Run_Time_HMS = {0}".format(str(datetime.timedelta(seconds=(time.time()-run_start)))))
+    log(i_log, "End_Time = {0}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
     log(i_log, "Done = {0}".format(i))
     i_log.close()
     c_log.close()
@@ -172,7 +177,8 @@ def main():
     # run_config(c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7], c[8],i)
     
     log_file.close()
-
+    command('python datamine.py')
+    command('cat {0}/out.csv | mail -s "Output" {1}'.format(archive_path, email))
     
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 import re
 import os.path
 import sys
-archive_path="/home/judah/archive1"
+archive_path="/home/judah/archive"
 out=open("{0}/out.csv".format(archive_path), "w", 1)
 
 def grab_data(log):
