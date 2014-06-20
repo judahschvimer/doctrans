@@ -3,6 +3,9 @@ demo: bash scripts  used for training, tuning, and running the translator
     2. tune.sh: tunes the model on the corpus in your home directory
     3. runTuned.sh: binarizes the files and runs the decoder if the model has been tuned
     4. runUntuned.sh: binarizes the files and runs the decoder if the model has not been tuned
+    5. test_params.py: runs through a full run of moses using a python wrapper. Can test multiple different configurations in parallel
+    6. append_corpus.py: appends one corpus to another
+    7. create_corpora.py: creates train,tune, and test corpora in a repl loop
 extract: python scripts to extract words for corpora
     1. pull_test.py: pulls words from the po files in the mongo docs
     2. split_dict.py: splits dictionaries from http://www.dicts.info/uddl.php into parallel corpora
@@ -108,8 +111,27 @@ Use mail -s "Tuning Done" judah.schvimer@mongodb.com <<< "Tuning the model is do
     
 http://www.june29.com/idp/IDPfiles.html
 
+TreeTagger:
+Part of Speech Tagger that works well with moses
+Follow Directions here:
+http://www.statmt.org/moses/?n=Moses.ExternalTools#ntoc10
+http://www.cis.uni-muenchen.de/~schmid/tools/TreeTagger/#Linux
+Commands should be made similar to below, certain files may have to be renamed to work: TreeTagger/lib/english-utf8.par should become TreeTagger/lib/english.par, just name appropriate files as it asks for them:
+~/mosesdecoder/scripts/training/wrappers/make-factor-pos.tree-tagger.perl -tree-tagger ~/TreeTagger -l en  ~/corpus/tuning/mongo-docs-tune.es-en.en  ~/mongopos
+~/mosesdecoder/scripts/training/combine_factors.pl ~/corpus/tuning/mongo-docs-tune.es-en.en mongopos > combined
 
+Syntactic Parser:
+The Michael Collins one works well with Moses, get it here:
+ mkdir collins/
+ cd collins/
+ wget http://people.csail.mit.edu/mcollins/PARSER.tar.gz
+ tar xzf PARSER.tar.gz
+ cd COLLINS-PARSER/code
+ make
 
-
-
+To use test_params.py do the following:
+Make sure that the global variables at the top pointing to the corpora and files are all correct
+Create an empty directory for the run files to go into and point to it as the archive_path at the top of the script
+Put all of the flags you want to run with (to run once just make all lists only have 1 or 0 items) in the lists near the top
+run with nohup nice -n 19 python test_params.py &
 
