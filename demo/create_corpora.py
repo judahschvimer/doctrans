@@ -56,10 +56,6 @@ def append_corpus(percentage, num_copies, base_fn, new_fn, start, final=False):
     with open(base_fn, 'a') as f:
         tot=int(len(new_content)*percentage/100)
         i=1
-        print base_fn
-        print new_fn
-        print num_copies
-        print tot
         while i<=num_copies:
             if final==False:
                 f.writelines(new_content[start:start+tot])
@@ -71,19 +67,17 @@ def append_corpus(percentage, num_copies, base_fn, new_fn, start, final=False):
     return start+tot
 
 def get_file_lengths(d):
-    print d
     for fn,s in d['sources'].iteritems():
         with open(s['file_path'], 'r') as f:
             s['length']=len(f.readlines())
 
-# returns the ideal total length of the corpus
+# returns the ideal total length of the corpus, the minimum length where each corpus section is used in full but the least is added
 def get_total_length(d,t):
-    min_perc=101
+    tot_length=0
     i=0
     for fn,s in d['sources'].iteritems():
-        if s['percent_of_'+t]<min_perc and s['percent_of_'+t]>0:
-            min_perc=s['percent_of_'+t]
-            tot_length=s['length']*100/min_perc
+        if s['percent_of_'+t]>0 and s['length']*100/s['percent_of_'+t]>tot_length:
+            tot_length=s['length']*100/s['percent_of_'+t]
         i=i+1
     return tot_length
  
@@ -109,7 +103,6 @@ def create_corpora(config):
             if(t=='test'): final=True
             s['end']=append_corpus(s['percent_'+t],s['num_copies'],outfile,s['file_path'],s['end'],final)
             i=i+1
-            print s
             
 
 def main():
