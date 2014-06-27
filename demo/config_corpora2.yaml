@@ -1,0 +1,33 @@
+name: run01
+foreign_language: es
+corpus_language: es
+sources:
+    - file_name: kde4
+      file_path: /home/judah/corpus/kde4/kde4.es-en.es
+      percent_train: 100
+      percent_test: 0
+      percent_tune: 0
+    - file_name: dict
+      file_path: /home/judah/corpus/dict/dict.en-es.es
+      percent_train: 100
+      percent_test: 0
+      percent_tune: 0
+    - file_name:  mongo-docs
+      file_path: /home/judah/corpus/mongo-docs/mongo-docs.es-en.es
+      percent_train: 50
+      percent_test: 20
+      percent_tune: 30
+source_contributions:
+    train:
+        - file_name: kde4
+          percent_of_corpus: 40
+        - file_name: dict
+          percent_of_corpus: 10
+        - file_name: mongo-docs
+          percent_of_corpus: 50
+    test:
+        - file_name: mongo-docs
+          percent_of_corpus: 100
+    tune:
+        - file_name: mongo-docs
+          percent_of_corpus: 100
