@@ -12,13 +12,13 @@ pool_size = 1
 corpora_path =  "/home/judah/corpus"
 train_name = "kde4.{0}-en".format(foreign) 
 training_path ="{0}/training/{1}".format(corpora_path,train_name) 
-tune_name = "mongo-docs-test.{0}-en".format(foreign) 
-tuning_path ="{0}/testing/{1}".format(corpora_path,tune_name)
+tune_name = "mongo-docs-tune.{0}-en".format(foreign) 
+tuning_path ="{0}/tuning/{1}".format(corpora_path,tune_name)
 test_name = "mongo-docs-test.{0}-en".format(foreign) 
 testing_path ="{0}/testing/{1}".format(corpora_path,test_name)
 moses_path = "/home/judah/mosesdecoder"
 irstlm_path = "/home/judah/irstlm-5.80.03" 
-archive_path = "/home/judah/archivePOS3"
+archive_path = "/home/judah/archivePOS5"
 tagger_path = "/home/judah/TreeTagger"
 email = "judah.schvimer@10gen.com"
 
@@ -89,15 +89,16 @@ def run_config(l_len, l_order, l_lang, l_direct, l_score, l_smoothing, l_align, 
  
     i=str(i)
     run_start=time.time();
+    lm_path = "{0}/{1}/lm".format(archive_path,i)
+    working_path = "{0}/{1}/working".format(archive_path,i)
     
     c=command("mkdir {0}/{1}".format(archive_path,i))
     print(c.out)
     print(c.err)
-
     
     i_log = open("{0}/{1}/{1}.ilog.txt".format(archive_path,i),"w",1)
     c_log = open("{0}/{1}/{1}.clog.txt".format(archive_path,i),"w",1)
-     
+    
     log(i_log, "i = {0}".format(i));
     log(i_log, "Start_Time = {0}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
     log(i_log, "Order = {0}".format(l_order))
@@ -113,7 +114,6 @@ def run_config(l_len, l_order, l_lang, l_direct, l_score, l_smoothing, l_align, 
    
     #Create language model 
     lm_start = time.time()
-    lm_path = "{0}/{1}/lm".format(archive_path,i)
     pcommand("mkdir {0}".format(lm_path), c_log)
     pcommand("{0}/bin/add-start-end.sh < {1}/{2}.true.{3} > {4}/{2}.sb.{3}".format(irstlm_path, corpora_path, train_name, foreign, lm_path), c_log)
     pcommand("{0}/bin/build-lm.sh -i {5}/{1}.sb.{4} -t {5}/tmp -p -n {2} -s {3} -o {5}/{1}.ilm.{4}.gz".format(irstlm_path,train_name, l_order, l_smoothing, foreign, lm_path), c_log)
@@ -138,14 +138,13 @@ def run_config(l_len, l_order, l_lang, l_direct, l_score, l_smoothing, l_align, 
     
     log(i_log, "Train_Start_Time = {0}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
     
-    working_path = "{0}/{1}/working".format(archive_path,i)
     
     pcommand("mkdir {0}".format(working_path), c_log)
     pcommand("{0}/scripts/training/train-model.perl -root-dir {15}/train -corpus {1}/{2}.factored.clean -f en -e {3} --score-options \'{4}\' -alignment {5} -reordering {6}-{7}-{8}-{9} -lm 0:{10}:{11}/{12}.blm.{13}:1 -lm 1:{10}:{11}/{12}.pos.blm.{13}:1 --translation-factors 0-0,1 -mgiza -mgiza-cpus {14} -external-bin-dir {0}/tools -cores {14} --parallel --parts 3 2>&1 > {15}/training.out".format(moses_path, corpora_path, train_name, foreign, l_score, l_align, l_model, l_orient, l_direct, l_lang, l_order, lm_path, train_name, foreign, threads, working_path), c_log)
     log(i_log, "Train_Time = {0}".format(str(time.time()-lm_start)))
     log(i_log, "Train_Time_HMS = {0}".format(str(datetime.timedelta(seconds=(time.time()-lm_start)))))
     print("trained")
-    ''' 
+     
     #Tune the model
     tune_start=time.time()
     log(i_log, "Tune_Start_Time = {0}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
@@ -153,7 +152,7 @@ def run_config(l_len, l_order, l_lang, l_direct, l_score, l_smoothing, l_align, 
     log(i_log, "Tune_Time = {0}".format(str(time.time()-tune_start)))
     log(i_log, "Tune_Time_HMS = {0}".format(str(datetime.timedelta(seconds=(time.time()-tune_start)))))
     print("tuned")
-    '''
+    
     #Test the model
     test_start=time.time()
     log(i_log, "Test_Start_Time = {0}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
@@ -177,9 +176,9 @@ def run_star(args):
 def main():
     global log_file
     os.environ['IRSTLM'] = irstlm_path
-    setup_train()
-    #setup_tune()
-    setup_test()
+    #setup_train()
+    setup_tune()
+    #setup_test()
     
     config=itertools.product(max_phrase_length, order, reordering_language, reordering_directionality, score_options, smoothing, alignment, reordering_orientation, reordering_modeltype)
     config=[list(e) for e in config]

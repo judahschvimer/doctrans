@@ -1,76 +1,124 @@
+from __future__ import division
 import sys
 import os
-import shutil
 import math
+import yaml
 
-def user():
-    return sys.stdin.readline().strip()
+def process_config(fn):
+    with open(fn, 'r') as c:
+        y=yaml.load(c)
+    
+    #create dictionary of file info for easy reference    
+    d=dict()
+    d['name']=y['name']
+    d['foreign_language']=y['foreign_language']
+    d['corpus_language']=y['corpus_language']
+    d['sources']=dict()
+    for f in y['sources']:
+        d['sources'][f['file_name']]=dict([('file_path',f['file_path']),('percent_train',f['percent_train']),('percent_tune',f['percent_tune']),('percent_test',f['percent_test']), ('end',0) ])
+        d['sources'][f['file_name']].setdefault('percent_of_train',0)
+        d['sources'][f['file_name']].setdefault('percent_of_tune',0)
+        d['sources'][f['file_name']].setdefault('percent_of_test',0)
+    for t in ['train','tune','test']:
+        for f in y['source_contributions'][t]:
+            d['sources'][f['file_name']]['percent_of_'+t]=f['percent_of_corpus'] 
+    return d
 
-def copy_and_open(src, dst):
-    shutil.copy(src, dst)
-    f=open("{0}/{1}".format(dst, os.path.basename(src)),"a")
-    return f 
 
-def file_length(f):
+#verify that percentages add up to 100 and are valid
+def verify_percs(d):
+    for fn,s in d['sources'].iteritems():
+        if s['percent_train']+s['percent_tune']+s['percent_test'] != 100:
+             print("Percentages don't add up to 100")
+             return 1
+        elif s['percent_train']<0 or s['percent_tune']<0 or s['percent_test'] < 0:
+            print("percentage is below 0")
+            return 1
+        elif s['percent_train']>100 or s['percent_tune']>100 or s['percent_test'] >100:
+            print("percentage is above 100")
+            return 1
+        
+    for t in ['train', 'tune', 'test']:
+        tot=0
+        for fn,s in d['sources'].iteritems():
+            tot=tot+s['percent_of_'+t]
+        if(tot!=100):
+            print(t+" percentages don't add up to 100")
+            return 1
+    
+    return 0
+
+#appends the correct amount of the corpus to the basefile, finishing up the file when necessary
+def append_corpus(percentage, num_copies, base_fn, new_fn, start, final=False):
+    with open(new_fn, 'r') as f:
+        new_content = f.readlines()
+    
+    with open(base_fn, 'a') as f:
+        tot=int(len(new_content)*percentage/100)
+        i=1
+        print base_fn
+        print new_fn
+        print num_copies
+        print tot
+        while i<=num_copies:
+            if final==False:
+                f.writelines(new_content[start:start+tot])
+            else:
+                f.writelines(new_content[start:])
+            i=i+1   
+        if(i!=num_copies): f.writelines(new_content[start:start+int(tot*(num_copies-i+1))])
+            
+    return start+tot
+
+def get_file_lengths(d):
+    print d
+    for fn,s in d['sources'].iteritems():
+        with open(s['file_path'], 'r') as f:
+            s['length']=len(f.readlines())
+
+# returns the ideal total length of the corpus
+def get_total_length(d,t):
+    min_perc=101
     i=0
-    for line in f:
+    for fn,s in d['sources'].iteritems():
+        if s['percent_of_'+t]<min_perc and s['percent_of_'+t]>0:
+            min_perc=s['percent_of_'+t]
+            tot_length=s['length']*100/min_perc
         i=i+1
-    return i
+    return tot_length
+ 
+
+#creates the corpus from the config
+def create_corpora(config):
+    d=process_config(config)
+    get_file_lengths(d)
+    verify_percs(d)
+    if not os.path.exists(d['name']):
+        os.makedirs(d['name'])
+    
+ 
+    #append files appropriately
+    for t in ['train', 'tune', 'test']:
+        outfile="{0}/{1}.en-{2}.{3}".format(d['name'],t,d['foreign_language'],d['corpus_language'])
+        open(outfile,'w').close()
+        tot_length=get_total_length(d,t)   
+        i=0
+        for fn,s in d['sources'].iteritems():
+            s['num_copies']=tot_length*s['percent_of_'+t]/100/s['length']
+            final=False
+            if(t=='test'): final=True
+            s['end']=append_corpus(s['percent_'+t],s['num_copies'],outfile,s['file_path'],s['end'],final)
+            i=i+1
+            print s
+            
 
 def main():
-    print("Source Language?")
-    source=user()
-    print("Target Language?")
-    target=user()
-    os.makedirs("train")
-    os.makedirs("tune")
-    os.makedirs("test")
-
-    print("Input path to current source training file (N if none)")
-    while True:
-        line=user()
-        if line=="N":
-            train_src=open("train/train.{0}-{1}.{0}".format(source,target),"a")
-            break
-        elif os.path.isfile(line)==False:
-            print("Please enter a valid file path")
-        else:
-            train_src=copy_and_open(line,"train")
-            break
-
-    while True:
-        print("Input path to new source file (N if no more)")
-        line=user()
-        if line=="N":
-            break
-        elif os.path.isfile(line)==False:
-            print("Please enter a valid file path")
-        else:
-            f=open(line,"r")
-            len=file_length(f)
-            f.close()
-            f=open(line,"r")
-            while True:
-                print("Enter percent of file to be added to training")
-                line=user()
-                try:
-                    train_perc = float(line)
-                    if train_perc<0 or train_perc>100:
-                        print("Percentage must be between 0 and 100")
-                    else:
-                        num_lines=math.floor(len*train_perc/100)
-                        for i in range(0,num_lines):
-                            train_src.write(f.readline())
-                except ValueError:
-                    print("Invalid number")
-                
-            close()
-
-    train_src.close()
+    config=sys.argv[1]
+    if not os.path.exists(config):
+            print(config +" could not be opened")
+            print_usage()
+            exit(1)
+    create_corpora(config)
     
-    
-   
-
-        
 if __name__ == "__main__":
     main()

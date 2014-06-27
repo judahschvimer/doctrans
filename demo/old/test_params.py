@@ -8,7 +8,7 @@ from bash_command import command
 
 foreign = "es"
 threads = "12"
-pool_size = 1
+pool_size = 100
 corpora_path =  "/home/judah/corpus"
 train_name = "kde4.{0}-en".format(foreign) 
 training_path ="{0}/training/{1}".format(corpora_path,train_name) 
@@ -18,17 +18,16 @@ test_name = "mongo-docs-test.{0}-en".format(foreign)
 testing_path ="{0}/testing/{1}".format(corpora_path,test_name)
 moses_path = "/home/judah/mosesdecoder"
 irstlm_path = "/home/judah/irstlm-5.80.03" 
-archive_path = "/home/judah/archiveOSM3"
+archive_path = "/home/judah/archive5"
 tagger_path = "/home/judah/TreeTagger"
 email = "judah.schvimer@10gen.com"
 
-class_num = 200
 order = ["3"]
 smoothing = ["improved-kneser-ney"]
-score_options = ["--GoodTuring"]
+score_options = ["", "--NoLex", "--OnlyDirect", "--GoodTuring", "--NoLex --OnlyDirect", "--NoLex --GoodTuring", "--OnlyDirect --GoodTuring", "--NoLex --OnlyDirect --GoodTuring"]
 alignment = [ "grow-diag-final-and"]
-reordering_modeltype = [ "hier"]
-reordering_orientation = [ "msd"]
+reordering_modeltype = [ "phrase", "hier"]
+reordering_orientation = [ "mslr", "msd"]
 reordering_directionality = ["bidirectional"] 
 reordering_language = ["fe"]
 max_phrase_length = ["7"]
@@ -62,17 +61,15 @@ def clean_corpus(token_path):
     pcommand("{0}/scripts/training/clean-corpus-n.perl {1}.true {2} en {1}.clean 1 80".format(moses_path, token_path, foreign), log_file)
 
 def POS_tag(corpus_path, token_path):
-    pcommand("{0}/scripts/training/wrappers/make-factor-pos.tree-tagger.perl -tree-tagger {1} -l en  {2}.clean.en  {3}.pos.en".format(moses_path, tagger_path, corpus_path, token_path), log_file)
-    pcommand("{0}/scripts/training/combine_factors.pl {1}.clean.en {2}.pos.en > {2}.factored.en".format(moses_path, corpus_path, token_path), log_file)
-    pcommand("{0}/scripts/training/wrappers/make-factor-pos.tree-tagger.perl -tree-tagger {1} -l {4}  {2}.clean.{4}  {3}.pos.{4}".format(moses_path, tagger_path, corpus_path, token_path, foreign), log_file)
-    pcommand("{0}/scripts/training/combine_factors.pl {1}.clean.{3} {2}.pos.{3} > {2}.factored.{3}".format(moses_path, corpus_path, token_path, foreign), log_file)
+    pcommand("{0}/scripts/training/wrappers/make-factor-pos.tree-tagger.perl -tree-tagger {1} -l en  {2}.en  {3}.pos.en".format(moses_path, tagger_path, corpus_path, token_path), log_file)
+    pcommand("{0}/scripts/training/combine_factors.pl {1}.en {2}.pos.en > {2}.factored.en".format(moses_path, corpus_path, token_path), log_file)
 
 def setup_train():
     tokenize_corpus(training_path, "{0}/{1}".format(corpora_path, train_name))
     train_truecaser("{0}/{1}".format(corpora_path, train_name))
     truecase_corpus("{0}/{1}".format(corpora_path, train_name))   
     clean_corpus("{0}/{1}".format(corpora_path, train_name))
-    #POS_tag(training_path, "{0}/{1}".format(corpora_path,train_name))
+    POS_tag(training_path, "{0}/{1}".format(corpora_path,train_name))
 
 def setup_tune():
     tokenize_corpus(tuning_path,  "{0}/{1}".format(corpora_path, tune_name))
@@ -83,7 +80,7 @@ def setup_test():
     truecase_corpus("{0}/{1}".format(corpora_path, test_name)) 
 
 def run_config(l_len, l_order, l_lang, l_direct, l_score, l_smoothing, l_align, l_orient, l_model,  i):
- 
+  
     i=str(i)
     run_start=time.time();
     lm_path = "{0}/{1}/lm".format(archive_path,i)
@@ -92,7 +89,7 @@ def run_config(l_len, l_order, l_lang, l_direct, l_score, l_smoothing, l_align, 
     c=command("mkdir {0}/{1}".format(archive_path,i))
     print(c.out)
     print(c.err)
-    
+
     
     i_log = open("{0}/{1}/{1}.ilog.txt".format(archive_path,i),"w",1)
     c_log = open("{0}/{1}/{1}.clog.txt".format(archive_path,i),"w",1)
@@ -116,31 +113,22 @@ def run_config(l_len, l_order, l_lang, l_direct, l_score, l_smoothing, l_align, 
     pcommand("{0}/bin/add-start-end.sh < {1}/{2}.true.{3} > {4}/{2}.sb.{3}".format(irstlm_path, corpora_path, train_name, foreign, lm_path), c_log)
     pcommand("{0}/bin/build-lm.sh -i {5}/{1}.sb.{4} -t {5}/tmp -p -n {2} -s {3} -o {5}/{1}.ilm.{4}.gz".format(irstlm_path,train_name, l_order, l_smoothing, foreign, lm_path), c_log)
     pcommand("{0}/bin/compile-lm --text  {3}/{1}.ilm.{2}.gz {3}/{1}.arpa.{2}".format(irstlm_path,train_name, foreign, lm_path), c_log)
-    pcommand("{0}/bin/build_binary -i {3}/{1}.arpa.es {3}/{1}.blm.{2}".format(moses_path,train_name, foreign, lm_path), c_log)
-    ''' 
-    pcommand("{0}/bin/add-start-end.sh < {1}/{2}.pos.{3} > {4}/{2}.pos.sb.{3}".format(irstlm_path, corpora_path, train_name, foreign, lm_path), c_log)
-    pcommand("{0}/bin/build-lm.sh -i {5}/{1}.pos.sb.{4} -t {5}/tmp -p -n {2} -s {3} -o {5}/{1}.pos.ilm.{4}.gz".format(irstlm_path,train_name, l_order, l_smoothing, foreign, lm_path), c_log)
-    pcommand("{0}/bin/compile-lm --text  {3}/{1}.pos.ilm.{2}.gz {3}/{1}.pos.arpa.{2}".format(irstlm_path,train_name, foreign, lm_path), c_log)
-    pcommand("{0}/bin/build_binary -i {3}/{1}.pos.arpa.es {3}/{1}.pos.blm.{2}".format(moses_path,train_name, foreign, lm_path), c_log)
-    '''
+    pcommand("{0}/bin/build_binary  {3}/{1}.arpa.es {3}/{1}.blm.{2}".format(moses_path,train_name, foreign, lm_path), c_log)
     o=pcommand("echo 'Is this a Spanish sentance?' | {0}/bin/query {1}/{2}.blm.{3}".format(moses_path, lm_path, train_name, foreign), c_log)
     log(i_log,"")
     log(i_log, o.out)
     log(i_log, o.err)
     log(i_log, "LM_Time = {0}".format(str(time.time()-lm_start)))
     log(i_log, "LM_Time_HMS = {0}".format(str(datetime.timedelta(seconds=(time.time()-lm_start)))))
- 
+
+    
     #Train the model
     train_start=time.time()
     
     log(i_log, "Train_Start_Time = {0}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
     
     pcommand("mkdir {0}".format(working_path), c_log)
-
-    #make more classes
-    pcommand("{0}/tools/mkcls -c{1} -n2 -p{2}/{3}.clean.en -V{4}/en.vcb.classes opt".format(moses_path, class_num, corpora_path, train_name, working_path), c_log)
-
-    pcommand("{0}/scripts/training/train-model.perl -verbose -root-dir {15}/train -corpus {1}/{2}.clean -f en -e {3} --score-options \'{4}\' -alignment {5} -reordering {6}-{7}-{8}-{9} -lm 0:{10}:{11}/{12}.blm.{13}:1 --osm-model {15}/  --osm-setting 0-0 -mgiza -mgiza-cpus {14} -external-bin-dir {0}/tools -cores {14} --parallel --parts 3 2>&1 > {15}/training.out".format(moses_path, corpora_path, train_name, foreign, l_score, l_align, l_model, l_orient, l_direct, l_lang, l_order, lm_path, train_name, foreign, threads, working_path), c_log)
+    pcommand("{0}/scripts/training/train-model.perl -root-dir {15}/train -corpus {1}/{2}.clean -f en -e {3} --score-options \'{4}\' -alignment {5} -reordering {6}-{7}-{8}-{9} -lm 0:{10}:{11}/{12}.blm.{13}:1 -mgiza -mgiza-cpus {14} -external-bin-dir {0}/tools -cores {14} --parallel --parts 3 2>&1 > {15}/training.out".format(moses_path, corpora_path, train_name, foreign, l_score, l_align, l_model, l_orient, l_direct, l_lang, l_order, lm_path, train_name, foreign, threads, working_path), c_log)
     log(i_log, "Train_Time = {0}".format(str(time.time()-lm_start)))
     log(i_log, "Train_Time_HMS = {0}".format(str(datetime.timedelta(seconds=(time.time()-lm_start)))))
     print("trained")
@@ -176,9 +164,9 @@ def run_star(args):
 def main():
     global log_file
     os.environ['IRSTLM'] = irstlm_path
-    #setup_train()
-    #setup_tune()
-    #setup_test()
+    setup_train()
+    setup_tune()
+    setup_test()
     
     config=itertools.product(max_phrase_length, order, reordering_language, reordering_directionality, score_options, smoothing, alignment, reordering_orientation, reordering_modeltype)
     config=[list(e) for e in config]

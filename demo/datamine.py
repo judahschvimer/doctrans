@@ -1,10 +1,9 @@
 import re
 import os.path
 import sys
-archive_path="/home/judah/archive"
-out=open("{0}/out.csv".format(archive_path), "w", 1)
+import structures
 
-def grab_data(log):
+def grab_data(log, out):
     for line in log:
         words=re.split(" = ",line)
         if len(words)>1:
@@ -44,21 +43,22 @@ def grab_data(log):
  
     out.write("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18}\n".format(i,max_phrase_length, order, reordering_language, reordering_directionality, score_options, smoothing, alignment, reordering_orientation, reordering_modeltype, BLEU_score, gram1, gram2, gram3, gram4, BP, ratio, hyp_len, ref_len))
 
-    
-
+def write_data(model_path):
+    with open("{0}/out.csv".format(model_path), "w", 1) as out:
+        out.write("i,max phrase length,order,reordering language,reordering directionality,score options,smoothing,alignment,reordering orientation,reordering modeltype,BLEU Score,1-gram precision,2-gram precision,3-gram precision,4-gram precision,BP,ratio,hyp len,ref len\n") 
+        g=0
+        while True:
+            curr_log_path="{1}/{0}/{0}.ilog.txt".format(g, model_path)
+            if os.path.isfile(curr_log_path)==False:
+                break
+            curr_log = open(curr_log_path, "r")
+            grab_data(curr_log,out)
+            curr_log.close()
+            g=g+1
+             
 def main():
-    global out
-    out.write("i,max phrase length,order,reordering language,reordering directionality,score options,smoothing,alignment,reordering orientation,reordering modeltype,BLEU Score,1-gram precision,2-gram precision,3-gram precision,4-gram precision,BP,ratio,hyp len,ref len\n")
-
-    g=0
-    while True:
-        curr_log_path="{1}/{0}/{0}.ilog.txt".format(g, archive_path)
-        if os.path.isfile(curr_log_path)==False:
-            break
-        curr_log = open(curr_log_path, "r")
-        grab_data(curr_log)
-        curr_log.close()
-        g=g+1
+    y=structures.BuildConfiguration(sys.argv[1])
+    write_data(y.model_path)
     
 if __name__ == "__main__":
     main()

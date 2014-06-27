@@ -24,8 +24,8 @@ Step 2:
 Install this IRSTLM: http://sourceforge.net/projects/irstlm/ (5.80.03)
 Follow these directions: http://www.statmt.org/moses/?n=FactoredTraining.BuildingLanguageModel#ntoc4
 In code, make sure that when you call “export IRSTLM=...” you direct it to the proper location
-Install Moses with IRSTLM
-./bjam --with-boost=~/boost_1_55_0 --with-irstlm=/home/judah/irstlm-5.80.03 -j12 -a
+Install Moses with IRSTLM, boost,  and with link=shared so that the python interface works
+./bjam --with-boost=~/boost_1_55_0 --with-irstlm=/home/judah/irstlm-5.80.03 -libdir=/home/judah/mosesdecoder/lib -j12 -a
 
 Step 3:
 Install MGIZA as described here: http://www.statmt.org/moses/?n=Moses.ExternalTools#ntoc3
@@ -51,6 +51,11 @@ Make sure when using the “--text” flag (as described in the directions) to N
 
 Step 7: 
 When running, run with bash, not just sh
+
+Step 8:
+To setup the python interface run the following from mosesdecoder/contrib/python:
+python setup.py build_ext -i --moses-lib=/home/judah/mosesdecoder/lib
+make sure to fix the path to the python package in the translate_docs.py file (or any other files that import the framework)
 
 To test, go into the working/train/ folder and run:
 grep ' document ' model/lex.f2e | sort -nrk 3 | head
