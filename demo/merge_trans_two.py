@@ -1,8 +1,12 @@
 import sys
 from itertools import izip
 
-#prints each file line by line to compare lines
-#this one only works for 2 files
+###############################################
+# This module prints each file line by line to compare lines and annotates them for easy viewing
+# Unlike merge_trans.py, this one only works for 2 files but adds annotations
+# It saves the output to merged.txt
+# Usage: python merge_trans_two.py file1 file2
+##############################################################
 def main():
     out= open("merged.txt", "w",1)
     with open(sys.argv[1],"r") as f1:

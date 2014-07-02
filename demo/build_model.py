@@ -7,13 +7,35 @@ import multiprocessing
 import yaml
 import structures
 import datamine
+import logging
 from bash_command import command
 
+######################
+# This module builds the translation model by training, tuning, and then testing
+# It also binarizes the model at the end so that it's faster to load the decoder later on
+# Using a config file as shown in the config_train.yaml, you can customize the build and what settings it uses to experiment
+# Usage: nohup nice -n 17 python build_model.py config_train.yaml 2>&1 > log.txt &
+######################
+
+
+
+logging.basicConfig(level=logging.INFO)
+logg = logging.getLogger("mylog")
+fh = logging.FileHandler('build_model.log')
+f = logging.Formatter("%(levelname)s %(asctime)s %(funcName)s %(lineno)d %(message)s")
+fh.setFormatter(f)
+logg.addHandler(fh)
+
 def pcommand(c, log):
+    logg = logging.getLogger("mylog")
+    logg.info(c)
+    
     log.write(c+"\n")
     o=command(c)
     log.write(o.out+"\n")
     log.write(o.err+"\n")
+    logg.info(o.out)
+    logg.info(o.err)
     return o
 
 def log(curr_file, message):
@@ -93,7 +115,7 @@ def run_config(l_len, l_order, l_lang, l_direct, l_score, l_smoothing, l_align, 
     pcommand("{0}/bin/add-start-end.sh < {1}/{2}.true.{3} > {4}/{2}.sb.{3}".format(irstlm_path, helper_dir, train_name, foreign, lm_path), c_log)
     pcommand("{0}/bin/build-lm.sh -i {5}/{1}.sb.{4} -t {5}/tmp -p -n {2} -s {3} -o {5}/{1}.ilm.{4}.gz".format(irstlm_path,train_name, l_order, l_smoothing, foreign, lm_path), c_log)
     pcommand("{0}/bin/compile-lm --text  {3}/{1}.ilm.{2}.gz {3}/{1}.arpa.{2}".format(irstlm_path,train_name, foreign, lm_path), c_log)
-    pcommand("{0}/bin/build_binary  {3}/{1}.arpa.es {3}/{1}.blm.{2}".format(moses_path,train_name, foreign, lm_path), c_log)
+    pcommand("{0}/bin/build_binary -i {3}/{1}.arpa.es {3}/{1}.blm.{2}".format(moses_path,train_name, foreign, lm_path), c_log)
     o=pcommand("echo 'Is this a Spanish sentance?' | {0}/bin/query {1}/{2}.blm.{3}".format(moses_path, lm_path, train_name, foreign), c_log)
     log(i_log,"")
     log(i_log, o.out)
@@ -131,6 +153,15 @@ def run_config(l_len, l_order, l_lang, l_direct, l_score, l_smoothing, l_align, 
     print("tested")
     log(i_log, "Test_Time = {0}".format(str(time.time()-test_start)))
     log(i_log, "Test_Time_HMS = {0}".format(str(datetime.timedelta(seconds=(time.time()-test_start)))))
+
+    pcommand("mkdir -p {0}/0/working/binarised-model".format(model_path),c_log)
+    pcommand("{0}/bin/processPhraseTable  -ttable 0 0 {1}/0/working/train/model/{2}.gz -nscores 5 -out {1}/0/working/binarised-model/phrase-table".format(moses_path,model_path,phrase_table_name), c_log)
+    pcommand("{0}/bin/processLexicalTable -in {1}/0/working/train/model/{6}.{2}-{3}-{4}-{5}.gz -out {1}/0/working/binarised-model/reordering-table".format(moses_path,model_path,l_model, l_orient,l_direct,l_lang, reordering_name), c_log)
+    pcommand("cp {0}/0/working/mert-work/moses.ini {0}/0/working/binarised-model".format(model_path), c_log)
+    pcommand("sed -i 's/PhraseDictionaryMemory/PhraseDictionaryBinary/' {0}/0/working/binarised-model/moses.ini".format(model_path), c_log)
+    pcommand("sed -i 's/train\/model\/{1}.gz/binarised-model\/phrase-table/' {0}/0/working/binarised-model/moses.ini".format(model_path, phrase_table_name), c_log)
+    pcommand("sed -i 's/train\/model\/reordering-table.{0}-{1}-{2}-{3}.gz/binarised-model\/reordering-table/' {4}/0/working/binarised-model/moses.ini".format(l_model, l_orient,l_direct,l_lang, model_path), c_log)
+
     log(i_log, "Run_Time_HMS = {0}".format(str(datetime.timedelta(seconds=(time.time()-run_start)))))
     log(i_log, "End_Time = {0}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
     log(i_log, "Done = {0}".format(i))
@@ -140,60 +171,7 @@ def run_config(l_len, l_order, l_lang, l_direct, l_score, l_smoothing, l_align, 
 # this method unpacks the list of parameters
 def run_star(args):
     return run_config(*args)
-'''
-def read_config(c_file):
-    with open(c_file, 'r') as c:
-        y=yaml.load(c)
-    global foreign
-    foreign = y['foreign']
-    global threads
-    threads = y['threads']
-    global pool_size
-    pool_size = y['pool_size']
-    global helper_dir
-    helper_dir = y['helper_dir']
-    global train_dir
-    train_dir = y['train_dir']
-    global train_name
-    train_name=y['train_name']
-    global tune_dir
-    tune_dir = y['tune_dir']
-    global tune_name
-    tune_name=y['tune_name']
-    global test_dir
-    test_dir = y['test_dir']
-    global test_name
-    test_name=y['test_name']
-    global moses_path
-    moses_path = y['moses_path']
-    global irstlm_path
-    irstlm_path = y['irstlm_path']
-    global model_path
-    model_path = y['model_path']
-    global datamine_path
-    datamine_path = y['datamine_path']
-    global email
-    email = y['email']
 
-    order = y['order']
-    smoothing = y['smoothing']
-    score_options = y['score_options']
-    alignment = y['alignment']
-    reordering_modeltype = y['reordering_modeltype']
-    reordering_orientation = y['reordering_orientation']
-    reordering_directionality = y['reordering_directionality']
-    reordering_language = y['reordering_language']
-    max_phrase_length = y['max_phrase_length']
-
-    config=itertools.product(max_phrase_length, order, reordering_language, reordering_directionality, score_options, smoothing, alignment, reordering_orientation, reordering_modeltype)
-    config=[list(e) for e in config]
-    i=0
-    for c in config:
-        c.append(i)
-        i=i+1
-
-    return config
-'''
 def get_run_args(y): 
     config=itertools.product(y.max_phrase_length, y.order, y.reordering_language, y.reordering_directionality, y.score_options, y.smoothing, y.alignment, y.reordering_orientation, y.reordering_modeltype)
     config=[list(e) for e in config]
@@ -206,7 +184,6 @@ def get_run_args(y):
 
 def main():
     y=structures.BuildConfiguration(sys.argv[1])
-    #config=read_config(sys.argv[1])
     config=get_run_args(y)
     
     global log_file

@@ -4,6 +4,15 @@ import os
 import math
 import yaml
 
+#########################
+# This module creates the appropriate train, tune, and test corpora
+# You must run it one language at a time in case the files don't match up exactly
+# It takes a config file similar to config_corpora.yaml
+# Usage: python create_corpora.py config_corpora.yaml
+#######################
+
+
+
 def process_config(fn):
     with open(fn, 'r') as c:
         y=yaml.load(c)

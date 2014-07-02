@@ -2,6 +2,12 @@ import polib
 import sys
 import os.path
 
+#######################################
+# This module takes a po file and writes it to a parallel corpus
+# It's useful for taking the po files and using them for training data for build_model.py
+# Usage: python po_to_corpus.py path/to/*.po
+######################################
+
 def write_po_file(source_doc, target_doc, po_file_name):
     print "processing", po_file_name
     po = polib.pofile(po_file_name)
@@ -20,7 +26,6 @@ def extract_translated_entries():
         return
 
     if os.path.isfile(path):
-        # write_po_file(sys.stdin, sys.
         return
 
     # path is a directory now
@@ -36,18 +41,7 @@ def extract_translated_entries():
                             filename))
 
 
-# Translate from English into foreign language
-def extract_source(path):
-    print "extracting source language from", path
-    po = polib.pofile(path)
-    with open("test.en", "w") as source_doc:
-        for entry in po:
-            print >> source_doc, entry.msgid.encode('utf-8')
-            # print >> source_doc, entry.msgstr.encode('utf-8')
-
-
 def main():
-    # extract_source(sys.argv[1])
     extract_translated_entries()
 
 if __name__ == "__main__":

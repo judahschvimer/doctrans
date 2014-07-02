@@ -2,19 +2,19 @@ foreign: es
 threads: 12
 pool_size: 40
 helper_dir: /home/judah/corpus/helper
-train_dir: /home/judah/corpus/run00
-train_name: train.es-en
-tune_dir:  /home/judah/corpus/run00
-tune_name: tune.es-en
-test_dir: /home/judah/corpus/run00
-test_name: test.es-en
+train_dir: /home/judah/corpus/run01
+train_name: train.en-es
+tune_dir:  /home/judah/corpus/run01
+tune_name: tune.en-es
+test_dir: /home/judah/corpus/run01
+test_name: test.en-es
 moses_path: /home/judah/mosesdecoder
 irstlm_path: /home/judah/irstlm-5.80.03
-model_path: /home/judah/archive7
+model_path: /home/judah/archive8
 datamine_path: /home/judah/doctrans/demo/datamine.py
 email: judah.schvimer@10gen.com
-phrase_table_name: phrase-table.0-0.1.1 
-reordering_name: reordering-table.0-0
+phrase_table_name: phrase-table
+reordering_name: reordering-table
 order:
    - 3
 smoothing:

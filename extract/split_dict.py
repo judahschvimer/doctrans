@@ -1,6 +1,11 @@
 import sys
 import re
 
+#################################
+# This module is useful for taking a dictionary file from http://www.dicts.info/uddl.php and parsing it into a parallel corpus
+# Usage python split_dict.py infile sourceFile targetFile
+##################################
+
 def split_dict(in_f, from_f, to_f):
     for line in in_f:
         if line[0]=='#':
@@ -22,7 +27,7 @@ def split_dict(in_f, from_f, to_f):
 
 def main():
     if len(sys.argv) !=  4:
-        print("Usage: python split_dict.py <inFile> <fromFile> <toFile>")
+        print("Usage: python split_dict.py <inFile> <sourceFile> <targetFile>")
         sys.exit()
     in_file_name = sys.argv[1]
     fpi = open(in_file_name)

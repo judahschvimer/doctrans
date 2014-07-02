@@ -1,0 +1,7 @@
+*.out
+*.txt
+demo/sandbox/*
+*.en
+*.es
+*.pyc
+verifier/venv/*

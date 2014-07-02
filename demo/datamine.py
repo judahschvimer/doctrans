@@ -3,6 +3,14 @@ import os.path
 import sys
 import structures
 
+#####################################
+# This module is used for extracting the data received from experiments created with build_model.py
+# It requires a directory structure similar to that created by build_model.py
+# It saves the data in an out.csv file that can easily be viewed in any spreadsheet program
+# It should be automatically called by build_model.py but can also be used on it's own
+# Usage: python datamine.py config_train.yaml
+################################################
+
 def grab_data(log, out):
     for line in log:
         words=re.split(" = ",line)

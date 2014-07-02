@@ -25,7 +25,7 @@ Install this IRSTLM: http://sourceforge.net/projects/irstlm/ (5.80.03)
 Follow these directions: http://www.statmt.org/moses/?n=FactoredTraining.BuildingLanguageModel#ntoc4
 In code, make sure that when you call “export IRSTLM=...” you direct it to the proper location
 Install Moses with IRSTLM, boost,  and with link=shared so that the python interface works
-./bjam --with-boost=~/boost_1_55_0 --with-irstlm=/home/judah/irstlm-5.80.03 -libdir=/home/judah/mosesdecoder/lib -j12 -a
+./bjam --with-boost=/home/judah/boost_1_55_0 --with-irstlm=/home/judah/irstlm-5.80.03 --with-giza=/home/judah/mgizapp-code/mgizapp/bin -j12 -a -q
 
 Step 3:
 Install MGIZA as described here: http://www.statmt.org/moses/?n=Moses.ExternalTools#ntoc3
@@ -47,15 +47,10 @@ Step 5:
 Whenever running build_model.sh, make sure directories ~/lm and ~/working do not already exist or build_model.sh will complain
 
 Step 6:
-Make sure when using the “--text” flag (as described in the directions) to NOT say “--text yes” and to only say “--text”
+For compile-lm, make sure when using the “--text” flag (as described in the directions) to NOT say “--text yes” and to only say “--text”
 
 Step 7: 
 When running, run with bash, not just sh
-
-Step 8:
-To setup the python interface run the following from mosesdecoder/contrib/python:
-python setup.py build_ext -i --moses-lib=/home/judah/mosesdecoder/lib
-make sure to fix the path to the python package in the translate_docs.py file (or any other files that import the framework)
 
 To test, go into the working/train/ folder and run:
 grep ' document ' model/lex.f2e | sort -nrk 3 | head
@@ -134,9 +129,10 @@ The Michael Collins one works well with Moses, get it here:
  cd COLLINS-PARSER/code
  make
 
-To use test_params.py do the following:
-Make sure that the global variables at the top pointing to the corpora and files are all correct
+To use build_model.py do the following:
+Make sure that the config variables in the config file  pointing to the corpora and files are all correct
 Create an empty directory for the run files to go into and point to it as the archive_path at the top of the script
-Put all of the flags you want to run with (to run once just make all lists only have 1 or 0 items) in the lists near the top
-run with nohup nice -n 19 python test_params.py &
+Put all of the flags you want to run with (to run once just make all lists only have 1 or 0 items) in the lists in the config
+
+The structures.py and bash_command.py files were written by Sam Kleinman and are useful for reading yaml files and wrapping bash commands in python respectively
 
