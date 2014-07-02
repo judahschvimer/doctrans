@@ -5,3 +5,6 @@ demo/sandbox/*
 *.es
 *.pyc
 verifier/venv/*
+extract/temp
+extract/trans
+extract/temp.translated
