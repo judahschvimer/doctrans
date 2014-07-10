@@ -6,39 +6,41 @@ import models
 
 ##############################
 # This module takes the data in mongodb and writes out any approved sentence translations to the po files
+# make sure you copy the files first
+# Usage: python mongo_to_po.py path/to/*.po <-all>
 #############################
 
 
 # writes any approved translations out to file
-def write_po(po_fn, mongodb):
+def write_po(po_fn, mongodb, all):
     po = polib.pofile(po_fn)
 
     for entry in po.untranslated_entries():
-        t=mongodb['veri']['translations'].find({"status":"approved", "sentenceID":entry.tcomment})
-        if t.count()>1:
+        if all is False: 
+            t = mongodb['veri']['translations'].find({"status":"approved", "sentenceID":entry.tcomment})
+        else:
+            t = mongodb['veri']['translations'].find({"sentenceID":entry.tcomment})
+            
+        if t.count() > 1:
             print("multiple approved translations with sentenceID: "+entry.tcomment)
             continue
-        if t.count()==1:        
+        if t.count() is 1:        
             print t[0]
             entry.msgstr = t[0]['translation'].strip().encode("utf-8")
             print entry.msgstr
 
     print "po.translated_entries()", po.translated_entries()
     # Save translated po file into a new file.
-    po.save(po_fn + ".new")
+    po.save(po_fn)
 
-def write_entries(mongodb):
-    if len(sys.argv) <= 1:
-        print "Usage: python", ' '.join(sys.argv), "path/to/*.po"
-        return
+def write_entries(mongodb, all, path):
 
-    path = sys.argv[1]
     if not os.path.exists(path):
         print path, "doesn't exsit"
         return
 
     if os.path.isfile(path):
-        write_po(path, mongodb)
+        write_po(path, mongodb, all)
         return
 
     # path is a directory now
@@ -48,12 +50,20 @@ def write_entries(mongodb):
     for root, dirs, files in os.walk(path):
         for filename in files:
             if filename.endswith(".po"):
-                write_po(os.path.join(root,filename),mongodb)
+                write_po(os.path.join(root,filename), mongodb, all)
 
 
 def main():
-    mongodb=MongoClient()
-    write_entries(mongodb)
+    if len(sys.argv) <= 1:
+        print "Usage: python", ' '.join(sys.argv), "path/to/*.po <all>"
+        return
+    all = False
+
+    if len(sys.argv) > 2 and sys.argv[3] is "all":
+        all = True
+
+    mongodb = MongoClient()
+    write_entries(mongodb, all, sys.argv[1])
 
 if __name__ == "__main__":
     main()

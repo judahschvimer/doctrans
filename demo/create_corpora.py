@@ -14,6 +14,12 @@ import yaml
 
 
 def process_config(fn):
+    """
+    Takes a file and returns a dictionary with corpus creation configuration and  additional default aggregated values. 
+
+    Adds <x,y,z> values to object. 
+    """
+
     with open(fn, 'r') as c:
         y=yaml.load(c)
     

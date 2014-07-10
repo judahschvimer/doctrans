@@ -1,3 +1,4 @@
+# Translation Pipeline
 demo: bash scripts  used for training, tuning, and running the translator
     1. train.sh: trains the model on the corpus in your home directory
     2. tune.sh: tunes the model on the corpus in your home directory
@@ -32,9 +33,6 @@ Install MGIZA as described here: http://www.statmt.org/moses/?n=Moses.ExternalTo
 If not already installed, you may need to install cmake for this to work
 Make a tools/ directory in mosesdecoder and put all of the files in the mgiza bin/ directory in it
 also include merge_alignment.py abd sbt2cooc.pl rom the mgiza scripts/ directory
-Finally if it doesn’t work, try to add a file called snt2cooc.out with the following in it:
-#   ${0%/*}/snt2cooc /dev/stdout $1
-#   $2 $3
 
 Step 4:
 Scrape MongoDB docs for Spanish text

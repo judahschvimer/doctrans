@@ -20,21 +20,22 @@ from bash_command import command
 
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("mylog")
+logg = logging.getLogger("mylog")
 fh = logging.FileHandler('build_model.log')
 f = logging.Formatter("%(levelname)s %(asctime)s %(funcName)s %(lineno)d %(message)s")
 fh.setFormatter(f)
-logger.addHandler(fh)
+logg.addHandler(fh)
 
 def pcommand(c, log):
-    logger.info(c)
+    logg = logging.getLogger("mylog")
+    logg.info(c)
     
     log.write(c+"\n")
     o=command(c)
     log.write(o.out+"\n")
     log.write(o.err+"\n")
-    logger.info(o.out)
-    logger.info(o.err)
+    logg.info(o.out)
+    logg.info(o.err)
     return o
 
 def log(curr_file, message):
@@ -86,14 +87,14 @@ def run_config(l_len, l_order, l_lang, l_direct, l_score, l_smoothing, l_align, 
     run_start=time.time();
     lm_path = "{0}/{1}/lm".format(model_path,i)
     working_path = "{0}/{1}/working".format(model_path,i)
-    
+
     c=command("mkdir {0}/{1}".format(model_path,i))
-    logger.info(c.out)
-    logger.info(c.err)
+    print(c.out)
+    print(c.err)
 
     i_log = open("{0}/{1}/{1}.ilog.txt".format(model_path,i),"w",1)
     c_log = open("{0}/{1}/{1}.clog.txt".format(model_path,i),"w",1)
-    
+
     log(i_log, "i = {0}".format(i));
     log(i_log, "Start_Time = {0}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
     log(i_log, "Order = {0}".format(l_order))
@@ -131,7 +132,7 @@ def run_config(l_len, l_order, l_lang, l_direct, l_score, l_smoothing, l_align, 
     pcommand("{0}/scripts/training/train-model.perl -root-dir {13}/train -corpus {1}/{2}.clean -f en -e {3} --score-options \'{4}\' -alignment {5} -reordering {6}-{7}-{8}-{9} -lm 0:{10}:{11}/{2}.blm.{3}:1 -mgiza -mgiza-cpus {12} -external-bin-dir {0}/tools -cores {12} --parallel --parts 3 2>&1 > {13}/training.out".format(moses_path, helper_dir, train_name, foreign, l_score, l_align, l_model, l_orient, l_direct, l_lang, l_order, lm_path, threads, working_path), c_log)
     log(i_log, "Train_Time = {0}".format(str(time.time()-lm_start)))
     log(i_log, "Train_Time_HMS = {0}".format(str(datetime.timedelta(seconds=(time.time()-lm_start)))))
-    logger.info("trained")
+    print("trained")
 
     #Tune the model
     tune_start=time.time()
@@ -139,25 +140,26 @@ def run_config(l_len, l_order, l_lang, l_direct, l_score, l_smoothing, l_align, 
     pcommand("{0}/scripts/training/mert-moses.pl {1}/{2}.true.en {1}/{2}.true.{3} {0}/bin/moses  {4}/train/model/moses.ini --working-dir {4}/mert-work --mertdir {0}/bin/ 2>&1 > {4}/mert.out".format(moses_path, helper_dir, tune_name, foreign, working_path), c_log)
     log(i_log, "Tune_Time = {0}".format(str(time.time()-tune_start)))
     log(i_log, "Tune_Time_HMS = {0}".format(str(datetime.timedelta(seconds=(time.time()-tune_start)))))
-    logger.info("tuned")
-    
+    print("tuned")
+
+    #Test the model
+    test_start=time.time()
+    log(i_log, "Test_Start_Time = {0}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
+    pcommand("{0}/scripts/training/filter-model-given-input.pl {3}/filtered {3}/mert-work/moses.ini {2}/{1}.true.en -Binarizer {0}/bin/processPhraseTable".format(moses_path, test_name, helper_dir, working_path), c_log)
+    pcommand("{0}/bin/moses -f {1}/filtered/moses.ini  < {2}/{3}.true.en > {1}/{3}.translated.{4} 2> {1}/{3}.out".format(moses_path, working_path, helper_dir, test_name, foreign), c_log)
+    c=pcommand("{0}/scripts/generic/multi-bleu.perl -lc {1}/{2}.true.{4} < {3}/{2}.translated.{4}".format(moses_path, helper_dir, test_name, working_path, foreign), c_log)
+    log(i_log, c.out)
+    print("tested")
+    log(i_log, "Test_Time = {0}".format(str(time.time()-test_start)))
+    log(i_log, "Test_Time_HMS = {0}".format(str(datetime.timedelta(seconds=(time.time()-test_start)))))
+
     pcommand("mkdir -p {0}/binarised-model".format(working_path),c_log)
     pcommand("{0}/bin/processPhraseTable  -ttable 0 0 {1}/train/model/{2}.gz -nscores 5 -out {1}/binarised-model/phrase-table".format(moses_path,working_path,y.phrase_table_name), c_log)
     pcommand("{0}/bin/processLexicalTable -in {1}/train/model/{6}.{2}-{3}-{4}-{5}.gz -out {1}/binarised-model/reordering-table".format(moses_path,working_path,l_model, l_orient,l_direct,l_lang, y.reordering_name), c_log)
     pcommand("cp {0}/mert-work/moses.ini {0}/binarised-model".format(working_path), c_log)
     pcommand("sed -i 's/PhraseDictionaryMemory/PhraseDictionaryBinary/' {0}/binarised-model/moses.ini".format(working_path), c_log)
     pcommand("sed -i 's/train\/model\/{1}.gz/binarised-model\/phrase-table/' {0}/binarised-model/moses.ini".format(working_path, y.phrase_table_name), c_log)
- 
-    #Test the model
-    test_start=time.time()
-    log(i_log, "Test_Start_Time = {0}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
-    pcommand("{0}/bin/moses -f {1}/binarised-model/moses.ini  < {2}/{3}.true.en > {1}/{3}.translated.{4} 2> {1}/{3}.out".format(moses_path, working_path, helper_dir, test_name, foreign), c_log)
-    c=pcommand("{0}/scripts/generic/multi-bleu.perl -lc {1}/{2}.true.{4} < {3}/{2}.translated.{4}".format(moses_path, helper_dir, test_name, working_path, foreign), c_log)
-    log(i_log, c.out)
-    logger.info("tested")
-    log(i_log, "Test_Time = {0}".format(str(time.time()-test_start)))
-    log(i_log, "Test_Time_HMS = {0}".format(str(datetime.timedelta(seconds=(time.time()-test_start)))))
-
+    pcommand("sed -i 's/train\/model\/reordering-table.{0}-{1}-{2}-{3}.gz/binarised-model\/reordering-table/' {4}/binarised-model/moses.ini".format(l_model, l_orient,l_direct,l_lang, working_path), c_log)
 
     log(i_log, "Run_Time_HMS = {0}".format(str(datetime.timedelta(seconds=(time.time()-run_start)))))
     log(i_log, "End_Time = {0}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))

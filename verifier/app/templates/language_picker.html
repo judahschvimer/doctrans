@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Translation Pipeline</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}"></link>
+    <script type=text/javascript src="{{url_for('static', filename='javascript/jquery.min.js') }}"></script>
+    <script type="text/javascript" src="{{url_for('static',filename='javascript/scripts.js')}}"></script>
+</head>
+<body>
+    <ul id="navigation">
+    Username: <input id="username" value="Judah"></input>
+    <table>
+        {% for language in language_list %}
+            <tr>
+                <td class="target" >
+                    <button class="language" id="{{language}}-languageButton" onclick="location.href = '/{{language}}';">{{language}}</button>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+    </ul>
+
+</body>
+</html>

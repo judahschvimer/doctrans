@@ -1,0 +1,41 @@
+td, th{
+    border: 1px solid black;
+    text-align: left;
+}
+
+td.source {
+    width: 35%;
+    padding: 5px;
+}
+
+td.target {
+    padding: 5px;
+    width: 45%;
+}
+
+textarea {
+    width: 80%;
+    height: 100%;
+    resize: none;
+    background-color: #F0F0F0;
+    font-size: 10pt;
+}
+
+p.result {
+    text-align: right;
+}
+
+div.target_text{
+    width: 80%;
+    float: left;
+    height: 100%;
+}
+
+div.target_side{
+    width: 20%;
+    float: left;
+}
+
+button.approve, button.edit{
+    float: right;
+}

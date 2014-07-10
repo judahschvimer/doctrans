@@ -10,7 +10,8 @@ test_dir: /home/judah/testing
 test_name: mongo-docs-test.es-en
 moses_path: /home/judah/mosesdecoder
 irstlm_path: /home/judah/irstlm-5.80.03
-model_path: /home/judah/archive7
+model_path: /home/judah/archive9
+best_run: 1
 datamine_path: /home/judah/doctrans/demo/datamine.py
 email: judah.schvimer@10gen.com
 phrase_table_name: phrase-table
@@ -24,7 +25,7 @@ score_options:
 alignment : 
    - grow-diag-final-and
 reordering_modeltype:
-   - phrase
+   - hier
 reordering_orientation:
    - mslr
 reordering_directionality:

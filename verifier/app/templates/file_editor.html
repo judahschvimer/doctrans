@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Translation Pipeline</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}"></link>
+    <script type=text/javascript src="{{url_for('static', filename='javascript/jquery.min.js') }}"></script>
+    <script type="text/javascript" src="{{url_for('static',filename='javascript/scripts.js')}}"></script>
+</head>
+<body>
+    <ul id="navigation">
+    Username: <input id="username" value="Judah"></input>
+    Target Language: {{language}}
+    <table>
+        {% for sentence in sentence_list %}
+            <tr>
+                <td class="source">{{sentence['source_sentence']}}</td>
+                <td class="target" data-sentence='{{sentence|to_json}}'>
+                    <textarea readonly class="target_sentence" id="{{sentence['sentenceID']}}-textarea">{{sentence['target_sentence']}}</textarea>
+                    {% if sentence['status'] != 'approved' %}
+                    <button class="edit" id="{{sentence['sentenceID']}}-editButton">Edit</button>
+                    <button class="approve" id="{{sentence['sentenceID']}}-approveButton">Approve</button>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+    </ul>
+
+</body>
+</html>

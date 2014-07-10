@@ -1,0 +1,3 @@
+MONGODB_SETTINGS = {'DB': 'ver'}
+SECRET_KEY = "KeepThisS3cr3t"
+APPROVAL_THRESHOLD = 2 
