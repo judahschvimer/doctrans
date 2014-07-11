@@ -10,6 +10,4 @@ from app import filters
 
 db = MongoEngine(app)
 
-if __name__ == '__main__':
-    app.run()
 

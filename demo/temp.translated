@@ -1,0 +1,14 @@
+Agregación Ejemplos
+Este documento proporciona en la práctica ejemplos que mostrar las capacidades de: Doc: 'Agregación < / core / aggregation >'.
+: Doc: '/ tutorial / aggregation-zip-code-data-set'
+Usar el aggregation valores del redireccionador para agrupar y para calcular aggregated promedios sumas y para una colección de Estados Unidos códigos zip.
+: Doc: '/ tutorial / aggregation-with-user-preference-data'
+Usar del redireccionador la para ordenar, normalizar, y suma los datos de una colección de usuario de datos.
+: Doc: '/ tutorial / map-reduce-examples'
+Definir map-reduce operaciones que seleccione intervalos, grupo datos, y calcular promedios sumas y.
+: Doc: '/ tutorial / perform-incremental-map-reduce'
+Ejecutar una map-reduce operaciones sobre uno colección y los resultados de la salida a otro colección.
+: Doc: '/ tutorial / troubleshoot-map-function'
+Medidas para a determinar el "map » función.
+: Doc: '/ tutorial / troubleshoot-reduce-function'
+Medidas para a determinar el "reducir" función.

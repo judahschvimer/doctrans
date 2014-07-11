@@ -341,3 +341,346 @@ INFO 2014-07-09 11:17:17,832 pcommand 30 mkdir /home/judah/archive10/0/working
 INFO 2014-07-09 11:17:17,848 pcommand 36 
 INFO 2014-07-09 11:17:17,848 pcommand 37 
 INFO 2014-07-09 11:17:17,848 pcommand 30 /home/judah/mosesdecoder/scripts/training/train-model.perl -root-dir /home/judah/archive10/0/working/train -corpus /home/judah/corpus/helper/train.en-es.clean -f en -e es --score-options '--GoodTuring' -alignment grow-diag-final-and -reordering phrase-mslr-bidirectional-fe -lm 0:3:/home/judah/archive10/0/lm/train.en-es.blm.es:1 -mgiza -mgiza-cpus 12 -external-bin-dir /home/judah/mosesdecoder/tools -cores 12 --parallel --parts 3 2>&1 > /home/judah/archive10/0/working/training.out
+INFO 2014-07-11 12:40:49,770 pcommand 30 /home/judah/mosesdecoder/scripts/tokenizer/tokenizer.perl -l en < /home/judah/corpus/run02/train.en-es.en > /home/judah/corpus/helper/train.en-es.tok.en -threads 12
+INFO 2014-07-11 12:42:16,440 pcommand 36 
+INFO 2014-07-11 12:42:16,440 pcommand 37 Tokenizer Version 1.1
+Language: en
+Number of threads: 12
+INFO 2014-07-11 12:42:16,440 pcommand 30 /home/judah/mosesdecoder/scripts/tokenizer/tokenizer.perl -l en < /home/judah/corpus/run02/train.en-es.es > /home/judah/corpus/helper/train.en-es.tok.es -threads 12
+INFO 2014-07-11 12:43:49,130 pcommand 36 
+INFO 2014-07-11 12:43:49,130 pcommand 37 Tokenizer Version 1.1
+Language: en
+Number of threads: 12
+INFO 2014-07-11 12:43:49,131 pcommand 30 /home/judah/mosesdecoder/scripts/recaser/train-truecaser.perl --model /home/judah/corpus/helper/truecase-model.en --corpus /home/judah/corpus/helper/train.en-es.tok.en
+INFO 2014-07-11 12:48:29,927 pcommand 36 
+INFO 2014-07-11 12:48:29,927 pcommand 37 
+INFO 2014-07-11 12:48:29,927 pcommand 30 /home/judah/mosesdecoder/scripts/recaser/train-truecaser.perl --model /home/judah/corpus/helper/truecase-model.es --corpus /home/judah/corpus/helper/train.en-es.tok.es
+INFO 2014-07-11 12:53:36,013 pcommand 36 
+INFO 2014-07-11 12:53:36,013 pcommand 37 
+INFO 2014-07-11 12:53:36,013 pcommand 30 /home/judah/mosesdecoder/scripts/recaser/truecase.perl --model /home/judah/corpus/helper/truecase-model.en < /home/judah/corpus/helper/train.en-es.tok.en > /home/judah/corpus/helper/train.en-es.true.en
+INFO 2014-07-11 12:59:29,807 pcommand 36 
+INFO 2014-07-11 12:59:29,807 pcommand 37 
+INFO 2014-07-11 12:59:29,807 pcommand 30 /home/judah/mosesdecoder/scripts/recaser/truecase.perl --model /home/judah/corpus/helper/truecase-model.es < /home/judah/corpus/helper/train.en-es.tok.es > /home/judah/corpus/helper/train.en-es.true.es
+INFO 2014-07-11 13:06:04,229 pcommand 36 
+INFO 2014-07-11 13:06:04,229 pcommand 37 
+INFO 2014-07-11 13:06:04,229 pcommand 30 /home/judah/mosesdecoder/scripts/training/clean-corpus-n.perl /home/judah/corpus/helper/train.en-es.true es en /home/judah/corpus/helper/train.en-es.clean 1 80
+INFO 2014-07-11 13:08:43,920 pcommand 36 
+INFO 2014-07-11 13:08:43,921 pcommand 37 clean-corpus.perl: processing /home/judah/corpus/helper/train.en-es.true.es & .en to /home/judah/corpus/helper/train.en-es.clean, cutoff 1-80
+..........(100000)..........(200000)..........(300000)..........(400000)..........(500000)..........(600000)..........(700000)..........(800000)..........(900000)..........(1000000)..........(1100000)..........(1200000)..........(1300000)..........(1400000)..........(1500000)..........(1600000)..........(1700000)..........(1800000)..........(1900000)..........(2000000)..........(2100000)..........(2200000)..........(2300000)..........(2400000)..........(2500000)..........(2600000)..........(2700000)..........(2800000)..........(2900000)..........(3000000)..........(3100000)..........(3200000)..........(3300000)..........(3400000)..........(3500000)..........(3600000)..........(3700000)..........(3800000)..........(3900000)..........(4000000)..........(4100000)..........(4200000)..........(4300000)..........(4400000)..........(4500000)..........(4600000)..........(4700000)..........(4800000)..........(4900000)..........(5000000)..........(5100000)..........(5200000)..........(5300000)..........(5400000)
+Input sentences: 5405767  Output sentences:  5311870
+INFO 2014-07-11 13:08:43,921 pcommand 30 /home/judah/mosesdecoder/scripts/tokenizer/tokenizer.perl -l en < /home/judah/corpus/run02/tune.en-es.en > /home/judah/corpus/helper/tune.en-es.tok.en -threads 12
+INFO 2014-07-11 13:08:44,018 pcommand 36 
+INFO 2014-07-11 13:08:44,019 pcommand 37 Tokenizer Version 1.1
+Language: en
+Number of threads: 12
+INFO 2014-07-11 13:08:44,019 pcommand 30 /home/judah/mosesdecoder/scripts/tokenizer/tokenizer.perl -l en < /home/judah/corpus/run02/tune.en-es.es > /home/judah/corpus/helper/tune.en-es.tok.es -threads 12
+INFO 2014-07-11 13:08:44,070 pcommand 36 
+INFO 2014-07-11 13:08:44,070 pcommand 37 Tokenizer Version 1.1
+Language: en
+Number of threads: 12
+INFO 2014-07-11 13:08:44,070 pcommand 30 /home/judah/mosesdecoder/scripts/recaser/truecase.perl --model /home/judah/corpus/helper/truecase-model.en < /home/judah/corpus/helper/tune.en-es.tok.en > /home/judah/corpus/helper/tune.en-es.true.en
+INFO 2014-07-11 13:08:44,474 pcommand 36 
+INFO 2014-07-11 13:08:44,474 pcommand 37 
+INFO 2014-07-11 13:08:44,474 pcommand 30 /home/judah/mosesdecoder/scripts/recaser/truecase.perl --model /home/judah/corpus/helper/truecase-model.es < /home/judah/corpus/helper/tune.en-es.tok.es > /home/judah/corpus/helper/tune.en-es.true.es
+INFO 2014-07-11 13:08:45,077 pcommand 36 
+INFO 2014-07-11 13:08:45,077 pcommand 37 
+INFO 2014-07-11 13:08:45,077 pcommand 30 /home/judah/mosesdecoder/scripts/tokenizer/tokenizer.perl -l en < /home/judah/corpus/run02/test.en-es.en > /home/judah/corpus/helper/test.en-es.tok.en -threads 12
+INFO 2014-07-11 13:08:45,120 pcommand 36 
+INFO 2014-07-11 13:08:45,120 pcommand 37 Tokenizer Version 1.1
+Language: en
+Number of threads: 12
+INFO 2014-07-11 13:08:45,120 pcommand 30 /home/judah/mosesdecoder/scripts/tokenizer/tokenizer.perl -l en < /home/judah/corpus/run02/test.en-es.es > /home/judah/corpus/helper/test.en-es.tok.es -threads 12
+INFO 2014-07-11 13:08:45,163 pcommand 36 
+INFO 2014-07-11 13:08:45,163 pcommand 37 Tokenizer Version 1.1
+Language: en
+Number of threads: 12
+INFO 2014-07-11 13:08:45,163 pcommand 30 /home/judah/mosesdecoder/scripts/recaser/truecase.perl --model /home/judah/corpus/helper/truecase-model.en < /home/judah/corpus/helper/test.en-es.tok.en > /home/judah/corpus/helper/test.en-es.true.en
+INFO 2014-07-11 13:08:45,564 pcommand 36 
+INFO 2014-07-11 13:08:45,564 pcommand 37 
+INFO 2014-07-11 13:08:45,564 pcommand 30 /home/judah/mosesdecoder/scripts/recaser/truecase.perl --model /home/judah/corpus/helper/truecase-model.es < /home/judah/corpus/helper/test.en-es.tok.es > /home/judah/corpus/helper/test.en-es.true.es
+INFO 2014-07-11 13:08:46,155 pcommand 36 
+INFO 2014-07-11 13:08:46,155 pcommand 37 
+INFO 2014-07-11 13:08:46,181 run_config 91 
+INFO 2014-07-11 13:08:46,181 run_config 91 
+INFO 2014-07-11 13:08:46,182 run_config 92 
+INFO 2014-07-11 13:08:46,182 run_config 92 
+INFO 2014-07-11 13:08:46,182 pcommand 30 mkdir /home/judah/archive10/0/lm
+INFO 2014-07-11 13:08:46,182 pcommand 30 mkdir /home/judah/archive10/1/lm
+INFO 2014-07-11 13:08:46,183 run_config 91 
+INFO 2014-07-11 13:08:46,183 run_config 92 
+INFO 2014-07-11 13:08:46,183 pcommand 30 mkdir /home/judah/archive10/2/lm
+INFO 2014-07-11 13:08:46,183 run_config 91 
+INFO 2014-07-11 13:08:46,184 run_config 92 
+INFO 2014-07-11 13:08:46,184 pcommand 30 mkdir /home/judah/archive10/3/lm
+INFO 2014-07-11 13:08:46,186 pcommand 36 
+INFO 2014-07-11 13:08:46,186 pcommand 36 
+INFO 2014-07-11 13:08:46,186 pcommand 37 
+INFO 2014-07-11 13:08:46,186 pcommand 37 
+INFO 2014-07-11 13:08:46,186 pcommand 30 /home/judah/irstlm-5.80.03/bin/add-start-end.sh < /home/judah/corpus/helper/train.en-es.true.es > /home/judah/archive10/0/lm/train.en-es.sb.es
+INFO 2014-07-11 13:08:46,186 pcommand 30 /home/judah/irstlm-5.80.03/bin/add-start-end.sh < /home/judah/corpus/helper/train.en-es.true.es > /home/judah/archive10/1/lm/train.en-es.sb.es
+INFO 2014-07-11 13:08:46,187 pcommand 36 
+INFO 2014-07-11 13:08:46,187 pcommand 36 
+INFO 2014-07-11 13:08:46,187 pcommand 37 
+INFO 2014-07-11 13:08:46,187 pcommand 37 
+INFO 2014-07-11 13:08:46,187 pcommand 30 /home/judah/irstlm-5.80.03/bin/add-start-end.sh < /home/judah/corpus/helper/train.en-es.true.es > /home/judah/archive10/2/lm/train.en-es.sb.es
+INFO 2014-07-11 13:08:46,187 pcommand 30 /home/judah/irstlm-5.80.03/bin/add-start-end.sh < /home/judah/corpus/helper/train.en-es.true.es > /home/judah/archive10/3/lm/train.en-es.sb.es
+INFO 2014-07-11 13:11:37,247 pcommand 36 
+INFO 2014-07-11 13:11:37,247 pcommand 37 
+INFO 2014-07-11 13:11:37,247 pcommand 30 /home/judah/irstlm-5.80.03/bin/build-lm.sh -i /home/judah/archive10/3/lm/train.en-es.sb.es -t /home/judah/archive10/3/lm/tmp -p -n 3 -s improved-kneser-ney -o /home/judah/archive10/3/lm/train.en-es.ilm.es.gz
+INFO 2014-07-11 13:11:39,953 pcommand 36 
+INFO 2014-07-11 13:11:39,953 pcommand 37 
+INFO 2014-07-11 13:11:39,953 pcommand 30 /home/judah/irstlm-5.80.03/bin/build-lm.sh -i /home/judah/archive10/2/lm/train.en-es.sb.es -t /home/judah/archive10/2/lm/tmp -p -n 3 -s improved-kneser-ney -o /home/judah/archive10/2/lm/train.en-es.ilm.es.gz
+INFO 2014-07-11 13:11:40,308 pcommand 36 
+INFO 2014-07-11 13:11:40,309 pcommand 37 
+INFO 2014-07-11 13:11:40,309 pcommand 30 /home/judah/irstlm-5.80.03/bin/build-lm.sh -i /home/judah/archive10/1/lm/train.en-es.sb.es -t /home/judah/archive10/1/lm/tmp -p -n 3 -s improved-kneser-ney -o /home/judah/archive10/1/lm/train.en-es.ilm.es.gz
+INFO 2014-07-11 13:11:42,875 pcommand 36 
+INFO 2014-07-11 13:11:42,875 pcommand 37 
+INFO 2014-07-11 13:11:42,875 pcommand 30 /home/judah/irstlm-5.80.03/bin/build-lm.sh -i /home/judah/archive10/0/lm/train.en-es.sb.es -t /home/judah/archive10/0/lm/tmp -p -n 3 -s improved-kneser-ney -o /home/judah/archive10/0/lm/train.en-es.ilm.es.gz
+INFO 2014-07-11 13:20:31,079 pcommand 36 Temporary directory /home/judah/archive10/3/lm/tmp does not exist
+creating /home/judah/archive10/3/lm/tmp
+Extracting dictionary from training corpus
+Splitting dictionary into 3 lists
+Extracting n-gram statistics for each word list
+Important: dictionary must be ordered according to order of appearance of words in data
+used to generate n-gram blocks,  so that sub language model blocks results ordered too
+dict.000
+dict.001
+dict.002
+$bin/ngt -i="$inpfile" -n=$order -gooout=y -o="$gzip -c > $tmpdir/ngram.${sdict}.gz" -fd="$tmpdir/$sdict" $dictionary -iknstat="$tmpdir/ikn.stat.$sdict" >> $logfile 2>&1
+Estimating language models for each word list
+dict.000
+dict.001
+dict.002
+$scr/build-sublm.pl $verbose $prune $smoothing "cat $tmpdir/ikn.stat.dict.*" --size $order --ngrams "$gunzip -c $tmpdir/ngram.${sdict}.gz" -sublm $tmpdir/lm.$sdict >> $logfile 2>&1
+Merging language models into /home/judah/archive10/3/lm/train.en-es.ilm.es.gz
+Cleaning temporary directory /home/judah/archive10/3/lm/tmp
+Removing temporary directory /home/judah/archive10/3/lm/tmp
+INFO 2014-07-11 13:20:31,079 pcommand 37 
+INFO 2014-07-11 13:20:31,079 pcommand 30 /home/judah/irstlm-5.80.03/bin/compile-lm --text  /home/judah/archive10/3/lm/train.en-es.ilm.es.gz /home/judah/archive10/3/lm/train.en-es.arpa.es
+INFO 2014-07-11 13:20:31,167 pcommand 36 Temporary directory /home/judah/archive10/2/lm/tmp does not exist
+creating /home/judah/archive10/2/lm/tmp
+Extracting dictionary from training corpus
+Splitting dictionary into 3 lists
+Extracting n-gram statistics for each word list
+Important: dictionary must be ordered according to order of appearance of words in data
+used to generate n-gram blocks,  so that sub language model blocks results ordered too
+dict.000
+dict.001
+dict.002
+$bin/ngt -i="$inpfile" -n=$order -gooout=y -o="$gzip -c > $tmpdir/ngram.${sdict}.gz" -fd="$tmpdir/$sdict" $dictionary -iknstat="$tmpdir/ikn.stat.$sdict" >> $logfile 2>&1
+Estimating language models for each word list
+dict.000
+dict.001
+dict.002
+$scr/build-sublm.pl $verbose $prune $smoothing "cat $tmpdir/ikn.stat.dict.*" --size $order --ngrams "$gunzip -c $tmpdir/ngram.${sdict}.gz" -sublm $tmpdir/lm.$sdict >> $logfile 2>&1
+Merging language models into /home/judah/archive10/2/lm/train.en-es.ilm.es.gz
+Cleaning temporary directory /home/judah/archive10/2/lm/tmp
+Removing temporary directory /home/judah/archive10/2/lm/tmp
+INFO 2014-07-11 13:20:31,167 pcommand 37 
+INFO 2014-07-11 13:20:31,167 pcommand 30 /home/judah/irstlm-5.80.03/bin/compile-lm --text  /home/judah/archive10/2/lm/train.en-es.ilm.es.gz /home/judah/archive10/2/lm/train.en-es.arpa.es
+INFO 2014-07-11 13:20:39,431 pcommand 36 Temporary directory /home/judah/archive10/1/lm/tmp does not exist
+creating /home/judah/archive10/1/lm/tmp
+Extracting dictionary from training corpus
+Splitting dictionary into 3 lists
+Extracting n-gram statistics for each word list
+Important: dictionary must be ordered according to order of appearance of words in data
+used to generate n-gram blocks,  so that sub language model blocks results ordered too
+dict.000
+dict.001
+dict.002
+$bin/ngt -i="$inpfile" -n=$order -gooout=y -o="$gzip -c > $tmpdir/ngram.${sdict}.gz" -fd="$tmpdir/$sdict" $dictionary -iknstat="$tmpdir/ikn.stat.$sdict" >> $logfile 2>&1
+Estimating language models for each word list
+dict.000
+dict.001
+dict.002
+$scr/build-sublm.pl $verbose $prune $smoothing "cat $tmpdir/ikn.stat.dict.*" --size $order --ngrams "$gunzip -c $tmpdir/ngram.${sdict}.gz" -sublm $tmpdir/lm.$sdict >> $logfile 2>&1
+Merging language models into /home/judah/archive10/1/lm/train.en-es.ilm.es.gz
+Cleaning temporary directory /home/judah/archive10/1/lm/tmp
+Removing temporary directory /home/judah/archive10/1/lm/tmp
+INFO 2014-07-11 13:20:39,431 pcommand 37 
+INFO 2014-07-11 13:20:39,431 pcommand 30 /home/judah/irstlm-5.80.03/bin/compile-lm --text  /home/judah/archive10/1/lm/train.en-es.ilm.es.gz /home/judah/archive10/1/lm/train.en-es.arpa.es
+INFO 2014-07-11 13:20:45,181 pcommand 36 Temporary directory /home/judah/archive10/0/lm/tmp does not exist
+creating /home/judah/archive10/0/lm/tmp
+Extracting dictionary from training corpus
+Splitting dictionary into 3 lists
+Extracting n-gram statistics for each word list
+Important: dictionary must be ordered according to order of appearance of words in data
+used to generate n-gram blocks,  so that sub language model blocks results ordered too
+dict.000
+dict.001
+dict.002
+$bin/ngt -i="$inpfile" -n=$order -gooout=y -o="$gzip -c > $tmpdir/ngram.${sdict}.gz" -fd="$tmpdir/$sdict" $dictionary -iknstat="$tmpdir/ikn.stat.$sdict" >> $logfile 2>&1
+Estimating language models for each word list
+dict.000
+dict.001
+dict.002
+$scr/build-sublm.pl $verbose $prune $smoothing "cat $tmpdir/ikn.stat.dict.*" --size $order --ngrams "$gunzip -c $tmpdir/ngram.${sdict}.gz" -sublm $tmpdir/lm.$sdict >> $logfile 2>&1
+Merging language models into /home/judah/archive10/0/lm/train.en-es.ilm.es.gz
+Cleaning temporary directory /home/judah/archive10/0/lm/tmp
+Removing temporary directory /home/judah/archive10/0/lm/tmp
+INFO 2014-07-11 13:20:45,181 pcommand 37 
+INFO 2014-07-11 13:20:45,181 pcommand 30 /home/judah/irstlm-5.80.03/bin/compile-lm --text  /home/judah/archive10/0/lm/train.en-es.ilm.es.gz /home/judah/archive10/0/lm/train.en-es.arpa.es
+INFO 2014-07-11 13:38:23,936 pcommand 36 
+INFO 2014-07-11 13:38:23,936 pcommand 37 inpfile: /home/judah/archive10/3/lm/train.en-es.ilm.es.gz
+outfile: /home/judah/archive10/3/lm/train.en-es.arpa.es
+loading up to the LM level 1000 (if any)
+dub: 10000000
+Language Model Type of /home/judah/archive10/3/lm/train.en-es.ilm.es.gz is 1
+Language Model Type is 1
+iARPA
+loadtxt_ram()
+1-grams: reading 242238 entries
+done level 1
+2-grams: reading 3860383 entries
+done level 2
+3-grams: reading 4642729 entries
+done level 3
+done
+OOV code is 242237
+OOV code is 242237
+Saving in txt format to /home/judah/archive10/3/lm/train.en-es.arpa.es
+savetxt: /home/judah/archive10/3/lm/train.en-es.arpa.es
+save: 242238 1-grams
+save: 3860383 2-grams
+save: 4642729 3-grams
+done
+INFO 2014-07-11 13:38:23,937 pcommand 30 /home/judah/mosesdecoder/bin/build_binary -i /home/judah/archive10/3/lm/train.en-es.arpa.es /home/judah/archive10/3/lm/train.en-es.blm.es
+INFO 2014-07-11 13:38:26,823 pcommand 36 
+INFO 2014-07-11 13:38:26,824 pcommand 37 inpfile: /home/judah/archive10/2/lm/train.en-es.ilm.es.gz
+outfile: /home/judah/archive10/2/lm/train.en-es.arpa.es
+loading up to the LM level 1000 (if any)
+dub: 10000000
+Language Model Type of /home/judah/archive10/2/lm/train.en-es.ilm.es.gz is 1
+Language Model Type is 1
+iARPA
+loadtxt_ram()
+1-grams: reading 242238 entries
+done level 1
+2-grams: reading 3860383 entries
+done level 2
+3-grams: reading 4642729 entries
+done level 3
+done
+OOV code is 242237
+OOV code is 242237
+Saving in txt format to /home/judah/archive10/2/lm/train.en-es.arpa.es
+savetxt: /home/judah/archive10/2/lm/train.en-es.arpa.es
+save: 242238 1-grams
+save: 3860383 2-grams
+save: 4642729 3-grams
+done
+INFO 2014-07-11 13:38:26,824 pcommand 30 /home/judah/mosesdecoder/bin/build_binary -i /home/judah/archive10/2/lm/train.en-es.arpa.es /home/judah/archive10/2/lm/train.en-es.blm.es
+INFO 2014-07-11 13:38:28,240 pcommand 36 
+INFO 2014-07-11 13:38:28,241 pcommand 37 Reading /home/judah/archive10/3/lm/train.en-es.arpa.es
+----5---10---15---20---25---30---35---40---45---50---55---60---65---70---75---80---85---90---95--100
+****************************************************************************************************
+SUCCESS
+INFO 2014-07-11 13:38:28,241 pcommand 30 echo 'Is this a Spanish sentance?' | /home/judah/mosesdecoder/bin/query /home/judah/archive10/3/lm/train.en-es.blm.es
+INFO 2014-07-11 13:38:28,263 pcommand 36 Is=191891 1 -8.57251	this=25891 1 -5.98433	a=21 1 -3.19184	Spanish=83451 1 -8.93601	sentance?=0 1 -3.30729	</s>=7 1 -1.27254	Total: -31.2645 OOV: 1
+Perplexity including OOVs:	162463
+Perplexity excluding OOVs:	390342
+OOVs:	1
+Tokenss:	6
+INFO 2014-07-11 13:38:28,263 pcommand 37 Name:query	VmPeak:196804 kB	VmRSS:1688 kB	RSSMax:179928 kB	user:0.000973	sys:0.015846	CPU:0.016819	real:0.0161435
+INFO 2014-07-11 13:38:28,263 pcommand 30 mkdir /home/judah/archive10/3/working
+INFO 2014-07-11 13:38:28,266 pcommand 36 
+INFO 2014-07-11 13:38:28,266 pcommand 37 
+INFO 2014-07-11 13:38:28,266 pcommand 30 /home/judah/mosesdecoder/scripts/training/train-model.perl -root-dir /home/judah/archive10/3/working/train -corpus /home/judah/corpus/helper/train.en-es.clean -f en -e es --score-options '--GoodTuring' -alignment grow-diag-final-and -reordering hier-msd-bidirectional-fe -lm 0:3:/home/judah/archive10/3/lm/train.en-es.blm.es:1 -mgiza -mgiza-cpus 12 -external-bin-dir /home/judah/mosesdecoder/tools -cores 12 --parallel --parts 3 2>&1 > /home/judah/archive10/3/working/training.out
+INFO 2014-07-11 13:38:31,566 pcommand 36 
+INFO 2014-07-11 13:38:31,567 pcommand 37 Reading /home/judah/archive10/2/lm/train.en-es.arpa.es
+----5---10---15---20---25---30---35---40---45---50---55---60---65---70---75---80---85---90---95--100
+****************************************************************************************************
+SUCCESS
+INFO 2014-07-11 13:38:31,567 pcommand 30 echo 'Is this a Spanish sentance?' | /home/judah/mosesdecoder/bin/query /home/judah/archive10/2/lm/train.en-es.blm.es
+INFO 2014-07-11 13:38:31,595 pcommand 36 Is=191891 1 -8.57251	this=25891 1 -5.98433	a=21 1 -3.19184	Spanish=83451 1 -8.93601	sentance?=0 1 -3.30729	</s>=7 1 -1.27254	Total: -31.2645 OOV: 1
+Perplexity including OOVs:	162463
+Perplexity excluding OOVs:	390342
+OOVs:	1
+Tokenss:	6
+INFO 2014-07-11 13:38:31,595 pcommand 37 Name:query	VmPeak:196804 kB	VmRSS:1688 kB	RSSMax:179928 kB	user:0.001218	sys:0.022886	CPU:0.024104	real:0.0231086
+INFO 2014-07-11 13:38:31,595 pcommand 30 mkdir /home/judah/archive10/2/working
+INFO 2014-07-11 13:38:31,599 pcommand 36 
+INFO 2014-07-11 13:38:31,599 pcommand 37 
+INFO 2014-07-11 13:38:31,599 pcommand 30 /home/judah/mosesdecoder/scripts/training/train-model.perl -root-dir /home/judah/archive10/2/working/train -corpus /home/judah/corpus/helper/train.en-es.clean -f en -e es --score-options '--GoodTuring' -alignment grow-diag-final-and -reordering phrase-msd-bidirectional-fe -lm 0:3:/home/judah/archive10/2/lm/train.en-es.blm.es:1 -mgiza -mgiza-cpus 12 -external-bin-dir /home/judah/mosesdecoder/tools -cores 12 --parallel --parts 3 2>&1 > /home/judah/archive10/2/working/training.out
+INFO 2014-07-11 13:38:38,468 pcommand 36 
+INFO 2014-07-11 13:38:38,468 pcommand 37 inpfile: /home/judah/archive10/0/lm/train.en-es.ilm.es.gz
+outfile: /home/judah/archive10/0/lm/train.en-es.arpa.es
+loading up to the LM level 1000 (if any)
+dub: 10000000
+Language Model Type of /home/judah/archive10/0/lm/train.en-es.ilm.es.gz is 1
+Language Model Type is 1
+iARPA
+loadtxt_ram()
+1-grams: reading 242238 entries
+done level 1
+2-grams: reading 3860383 entries
+done level 2
+3-grams: reading 4642729 entries
+done level 3
+done
+OOV code is 242237
+OOV code is 242237
+Saving in txt format to /home/judah/archive10/0/lm/train.en-es.arpa.es
+savetxt: /home/judah/archive10/0/lm/train.en-es.arpa.es
+save: 242238 1-grams
+save: 3860383 2-grams
+save: 4642729 3-grams
+done
+INFO 2014-07-11 13:38:38,468 pcommand 30 /home/judah/mosesdecoder/bin/build_binary -i /home/judah/archive10/0/lm/train.en-es.arpa.es /home/judah/archive10/0/lm/train.en-es.blm.es
+INFO 2014-07-11 13:38:40,938 pcommand 36 
+INFO 2014-07-11 13:38:40,938 pcommand 37 inpfile: /home/judah/archive10/1/lm/train.en-es.ilm.es.gz
+outfile: /home/judah/archive10/1/lm/train.en-es.arpa.es
+loading up to the LM level 1000 (if any)
+dub: 10000000
+Language Model Type of /home/judah/archive10/1/lm/train.en-es.ilm.es.gz is 1
+Language Model Type is 1
+iARPA
+loadtxt_ram()
+1-grams: reading 242238 entries
+done level 1
+2-grams: reading 3860383 entries
+done level 2
+3-grams: reading 4642729 entries
+done level 3
+done
+OOV code is 242237
+OOV code is 242237
+Saving in txt format to /home/judah/archive10/1/lm/train.en-es.arpa.es
+savetxt: /home/judah/archive10/1/lm/train.en-es.arpa.es
+save: 242238 1-grams
+save: 3860383 2-grams
+save: 4642729 3-grams
+done
+INFO 2014-07-11 13:38:40,939 pcommand 30 /home/judah/mosesdecoder/bin/build_binary -i /home/judah/archive10/1/lm/train.en-es.arpa.es /home/judah/archive10/1/lm/train.en-es.blm.es
+INFO 2014-07-11 13:38:43,741 pcommand 36 
+INFO 2014-07-11 13:38:43,741 pcommand 37 Reading /home/judah/archive10/0/lm/train.en-es.arpa.es
+----5---10---15---20---25---30---35---40---45---50---55---60---65---70---75---80---85---90---95--100
+****************************************************************************************************
+SUCCESS
+INFO 2014-07-11 13:38:43,741 pcommand 30 echo 'Is this a Spanish sentance?' | /home/judah/mosesdecoder/bin/query /home/judah/archive10/0/lm/train.en-es.blm.es
+INFO 2014-07-11 13:38:43,771 pcommand 36 Is=191891 1 -8.57251	this=25891 1 -5.98433	a=21 1 -3.19184	Spanish=83451 1 -8.93601	sentance?=0 1 -3.30729	</s>=7 1 -1.27254	Total: -31.2645 OOV: 1
+Perplexity including OOVs:	162463
+Perplexity excluding OOVs:	390342
+OOVs:	1
+Tokenss:	6
+INFO 2014-07-11 13:38:43,771 pcommand 37 Name:query	VmPeak:196804 kB	VmRSS:1684 kB	RSSMax:179924 kB	user:0.001214	sys:0.023679	CPU:0.024893	real:0.0235526
+INFO 2014-07-11 13:38:43,771 pcommand 30 mkdir /home/judah/archive10/0/working
+INFO 2014-07-11 13:38:43,779 pcommand 36 
+INFO 2014-07-11 13:38:43,779 pcommand 37 
+INFO 2014-07-11 13:38:43,779 pcommand 30 /home/judah/mosesdecoder/scripts/training/train-model.perl -root-dir /home/judah/archive10/0/working/train -corpus /home/judah/corpus/helper/train.en-es.clean -f en -e es --score-options '--GoodTuring' -alignment grow-diag-final-and -reordering phrase-mslr-bidirectional-fe -lm 0:3:/home/judah/archive10/0/lm/train.en-es.blm.es:1 -mgiza -mgiza-cpus 12 -external-bin-dir /home/judah/mosesdecoder/tools -cores 12 --parallel --parts 3 2>&1 > /home/judah/archive10/0/working/training.out
+INFO 2014-07-11 13:38:46,766 pcommand 36 
+INFO 2014-07-11 13:38:46,766 pcommand 37 Reading /home/judah/archive10/1/lm/train.en-es.arpa.es
+----5---10---15---20---25---30---35---40---45---50---55---60---65---70---75---80---85---90---95--100
+****************************************************************************************************
+SUCCESS
+INFO 2014-07-11 13:38:46,766 pcommand 30 echo 'Is this a Spanish sentance?' | /home/judah/mosesdecoder/bin/query /home/judah/archive10/1/lm/train.en-es.blm.es
+INFO 2014-07-11 13:38:46,838 pcommand 36 Is=191891 1 -8.57251	this=25891 1 -5.98433	a=21 1 -3.19184	Spanish=83451 1 -8.93601	sentance?=0 1 -3.30729	</s>=7 1 -1.27254	Total: -31.2645 OOV: 1
+Perplexity including OOVs:	162463
+Perplexity excluding OOVs:	390342
+OOVs:	1
+Tokenss:	6
+INFO 2014-07-11 13:38:46,838 pcommand 37 Name:query	VmPeak:196804 kB	VmRSS:1688 kB	RSSMax:179928 kB	user:0.001258	sys:0.02397	CPU:0.025228	real:0.0477703
+INFO 2014-07-11 13:38:46,839 pcommand 30 mkdir /home/judah/archive10/1/working
+INFO 2014-07-11 13:38:46,857 pcommand 36 
+INFO 2014-07-11 13:38:46,858 pcommand 37 
+INFO 2014-07-11 13:38:46,858 pcommand 30 /home/judah/mosesdecoder/scripts/training/train-model.perl -root-dir /home/judah/archive10/1/working/train -corpus /home/judah/corpus/helper/train.en-es.clean -f en -e es --score-options '--GoodTuring' -alignment grow-diag-final-and -reordering hier-mslr-bidirectional-fe -lm 0:3:/home/judah/archive10/1/lm/train.en-es.blm.es:1 -mgiza -mgiza-cpus 12 -external-bin-dir /home/judah/mosesdecoder/tools -cores 12 --parallel --parts 3 2>&1 > /home/judah/archive10/1/working/training.out
