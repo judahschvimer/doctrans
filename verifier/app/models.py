@@ -17,7 +17,9 @@ def get_sentences_in_file(fp, source_language, target_language):
     sentences = mongodb['veri']['translations'].find({'fileID': file[u'_id']},
                                                      {'_id': 1, 
                                                       'source_sentence': 1, 
-                                                      'target_sentence': 1} ).sort('sentence_num',1)
+                                                      'target_sentence': 1,
+                                                      'approvers':1,
+                                                      'userID':1} ).sort('sentence_num',1)
     return sentences
 
 def get_languages():
@@ -145,17 +147,20 @@ class Sentence(object):
                 self.state[k] = v
 
     def edit(self, new_editor, new_target_sentence):
+        if new_editor._id in self.state['approvers']:
+            logger.error("editor already approved")
+            raise Exception
         audit("edit", self.userID, new_editor._id, self.state, new_target_sentence)
         self.increment_update_number()
         self.userID = new_editor._id
         self.target_sentence = new_target_sentence
         self.status = 'reviewed'
-        self.num_approves = 0
+        self.state['approvers'] = []
         self.save()
         
  
     def approve(self, prev_editor, approver):
-        if prev_editor is approver:
+        if prev_editor._id == approver._id:
             logger.debug('editor is approver')
             raise Exception
         if self.userID != prev_editor._id:
@@ -177,6 +182,7 @@ class Sentence(object):
             raise Exception
         audit("unapprove", prev_editor._id, unapprover._id, self.state)
         self.increment_update_number()
+        self.remove_approver(unapprover._id)
         unapprover.decrement_user_approved()
         prev_editor.decrement_got_approved()
         prev_editor.save()

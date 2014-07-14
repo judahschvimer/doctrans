@@ -7,7 +7,7 @@
     <script type="text/javascript" src="{{url_for('static',filename='javascript/scripts.js')}}"></script>
 </head>
 <body>
-    <ul id="navigation">
+    <ul id="navigation" data-userid='{{username|get_userID}}'>
     Username: <input id="username" value="{{username}}" readonly></input>
     Target Language: <input id="language" value="{{language}}" readonly></input>
     <table>
@@ -17,8 +17,8 @@
                 <td class="target" data-sentence='{{sentence|to_json}}'>
                     <textarea readonly class="target_sentence" id="{{sentence['sentenceID']}}-textarea">{{sentence['target_sentence']}}</textarea>
                     {% if sentence['status'] != 'approved' %}
-                    <button class="edit" id="{{sentence['sentenceID']}}-editButton">Edit</button> 
-                    <button class="approve" id="{{sentence['sentenceID']}}-approveButton">Approve</button>
+                            <button class="edit" id="{{sentence['sentenceID']}}-editButton">Edit</button>
+                            <button class="approve" id="{{sentence['sentenceID']}}-approveButton">Approve</button>
                     {% endif %}
                 </td>
             </tr>
