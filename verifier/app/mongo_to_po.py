@@ -55,14 +55,14 @@ def write_entries(mongodb, all, path):
 
 def main():
     if len(sys.argv) <= 1:
-        print "Usage: python", ' '.join(sys.argv), "path/to/*.po <all>"
+        print "Usage: python", ' '.join(sys.argv), "path/to/*.po <all> <port>"
         return
     all = False
 
     if len(sys.argv) > 2 and sys.argv[3] is "all":
         all = True
 
-    mongodb = MongoClient()
+    mongodb = MongoClient('localhost', int(sys.argv[4]))
     write_entries(mongodb, all, sys.argv[1])
 
 if __name__ == "__main__":

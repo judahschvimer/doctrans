@@ -30,8 +30,7 @@ def write_mongo(po_fn, userID, status, language, po_root):
                               u'target_language': language, 
                               u'userID': userID,
                               u'status': status, 
-                              u'update_number': 0, 
-                              u'num_approves': 0})
+                              u'update_number': 0 })
         print t.state
         t.save()
         i += 1
@@ -59,10 +58,10 @@ def extract_entries(mongodb, path, username, status, language):
 
 
 def main():
-    if len(sys.argv) < 5:
-        print "Usage: python", ' '.join(sys.argv), "<path/to/*.po> <username> <status> <language>"
+    if len(sys.argv) < 6:
+        print "Usage: python", ' '.join(sys.argv), "<path/to/*.po> <username> <status> <language> <port>"
         return
-    mongodb = MongoClient()
+    mongodb = MongoClient('localhost', int(sys.argv[5]))
     extract_entries(mongodb, sys.argv[1],sys.argv[2], sys.argv[3], sys.argv[4])
 
 if __name__ == "__main__":

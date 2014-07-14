@@ -5,7 +5,7 @@ import logging
 logger = logging.getLogger('models')
 logging.basicConfig(level=logging.DEBUG)
 
-mongodb = MongoClient()
+mongodb = MongoClient('localhost', 28000)
 
 def get_sentences_in_file(fp, source_language, target_language):
     file = mongodb['veri']['files'].find_one({'source_language': source_language, 

@@ -24,11 +24,9 @@ score_options:
 alignment : 
    - grow-diag-final-and
 reordering_modeltype:
-   - phrase
    - hier
 reordering_orientation:
    - mslr
-   - msd
 reordering_directionality:
    - bidirectional
 reordering_language:
