@@ -8,8 +8,8 @@
 </head>
 <body>
     <ul id="navigation">
-    Username: <input id="username" value="Judah"></input>
-    Target Language: {{language}}
+    Username: <input id="username" value="{{username}}" readonly></input>
+    Target Language: <input id="language" value="{{language}}" readonly></input>
     <table>
         {% for file in file_list %}
             <tr>
@@ -17,7 +17,7 @@
                     {{file['file_path']}}
                 </td>
                 <td class="target" >
-                    <button class="editfile" id="{{file}}-editButton" onclick="location.href = '/{{language}}/{{file['file_path']|pathname2url}}';">Edit</button>
+                    <button class="editfile" id="{{file}}-editButton" onclick="location.href = '/file/{{username}}/{{language}}/{{file['file_path']|pathname2url}}';">Edit</button>
                 </td>
             </tr>
         {% endfor %}

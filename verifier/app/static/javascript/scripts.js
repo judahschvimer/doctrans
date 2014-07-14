@@ -1,6 +1,8 @@
 $(document).ready(function(){
     $(".edit").on('click',edit);
     $(".approve").on('click',approve);
+    $(".unapprove").on('click',unapprove);
+    $(".language").on('click',language);
 });
 
 
@@ -29,7 +31,9 @@ function approve(){
     $(this).parent().children(".edit").attr("disabled",true);
     $(this).parent().children(".approve").html("Unapprove");
     $(this).parent().children(".approve").off('click').on('click', unapprove);
-    
+    $(this).parent().children(".approve").addClass('unapprove').removeClass('approve');
+        
+
     var new_content={"approver": $("#username").val()}
     var j={"old": $(this).parent().data("sentence"), "new": new_content};
     $.ajax({
@@ -43,9 +47,10 @@ function approve(){
 
 function unapprove(){
     $(this).parent().children(".edit").attr("disabled",false); 
-    $(this).parent().children(".approve").html("Approve");
+    $(this).parent().children(".unapprove").html("Approve");
     $(this).parent().children(".edit").off('click').on('click', edit);
-    $(this).parent().children(".approve").off('click').on('click', approve);
+    $(this).parent().children(".unapprove").off('click').on('click', approve);
+    $(this).parent().children(".unapprove").addClass('approve').removeClass('unapprove');
 
     var new_content={"unapprover": $("#username").val()}
     var j={"old": $(this).parent().data("sentence"), "new": new_content};
@@ -56,4 +61,8 @@ function unapprove(){
           data: JSON.stringify(j),
           dataType: "json"
     }).done().fail();
-}   
+}  
+
+function language(){
+    window.location.href = 'file/'+$('#username').val()+'/'+$(this).html();
+}

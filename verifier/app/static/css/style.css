@@ -36,6 +36,6 @@ div.target_side{
     float: left;
 }
 
-button.approve, button.edit{
+button.approve, button.unapprove, button.edit{
     float: right;
 }

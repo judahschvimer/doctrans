@@ -1,6 +1,7 @@
 import datetime
 from pymongo import MongoClient
 import logging
+from . import app
 
 logger = logging.getLogger('models')
 logging.basicConfig(level=logging.DEBUG)
@@ -8,6 +9,7 @@ logging.basicConfig(level=logging.DEBUG)
 mongodb = MongoClient('localhost', 28000)
 
 def get_sentences_in_file(fp, source_language, target_language):
+    logger.debug(fp)
     file = mongodb['veri']['files'].find_one({'source_language': source_language, 
                                               'target_language': target_language, 
                                               'file_path': fp}, 
@@ -31,16 +33,18 @@ def get_file_names(source_language, target_language):
     logger.info(file_names)
     return file_names
 
-def audit(action, editor, user, doc, new_target_sentence=None):
+def audit(action, last_editor, current_user, doc, new_target_sentence=None):
     if action is 'edit':
-        mongodb['veri']['audits'].insert({'action': action, 
-                                          'user': user,
+        mongodb['veri']['audits'].insert({'action': action,
+                                          'last_editor': last_editor, 
+                                          'current_user': current_user,
                                           'original_document': doc, 
                                           'new_target_sentence': new_target_sentence,
                                           'timestamp': datetime.datetime.utcnow() })
     else:
         mongodb['veri']['audits'].insert({'action': action, 
-                                          'user': user,
+                                          'last_editor': last_editor,
+                                          'current_user': current_user,
                                           'original_document': doc, 
                                           'timestamp': datetime.datetime.utcnow() })
         
@@ -101,13 +105,13 @@ class File(object):
     def unlock(self):
         self.state[u'locked'] = False
 
-    def total_approved():
+    def total_approved(self):
         return mongodb['veri']['translations'].find({'fileID':self._id, 'status': 'approved'}).count()
 
-    def total_reviewed():
+    def total_reviewed(self):
         return mongodb['veri']['translations'].find({'fileID':self._id, 'status': { '$in': ['reviewed', 'approved']}}).count()
 
-    def get_total():
+    def get_total(self):
         return mongodb['veri']['translations'].find({'fileID':self._id}).count()
 
 class Sentence(object):
@@ -126,6 +130,7 @@ class Sentence(object):
                        u'approvers' : [] }
 
         if source is not None:
+            logger.debug(source)
             for k,v in source.iteritems():
                 if not self.state.has_key(k):
                     logger.debug(k)
@@ -140,9 +145,9 @@ class Sentence(object):
                 self.state[k] = v
 
     def edit(self, new_editor, new_target_sentence):
-        audit("edit", new_editor, self.username, self.state, new_target_sentence)
+        audit("edit", self.userID, new_editor._id, self.state, new_target_sentence)
         self.increment_update_number()
-        self.username = new_editor
+        self.userID = new_editor._id
         self.target_sentence = new_target_sentence
         self.status = 'reviewed'
         self.num_approves = 0
@@ -151,8 +156,12 @@ class Sentence(object):
  
     def approve(self, prev_editor, approver):
         if prev_editor is approver:
+            logger.debug('editor is approver')
             raise Exception
-        audit("approve", approver, self.username, self.state)
+        if self.userID != prev_editor._id:
+            logger.debug('no match')
+            raise Exception
+        audit("approve", prev_editor._id, approver._id, self.state)
         self.increment_update_number()
         approver.increment_user_approved()
         self.add_approver(approver._id)
@@ -164,7 +173,9 @@ class Sentence(object):
         self.save()
 
     def unapprove(self, prev_editor, unapprover):
-        audit("unapprove", unapprover, self.username, self.state)
+        if self.userID !=  prev_editor._id:
+            raise Exception
+        audit("unapprove", prev_editor._id, unapprover._id, self.state)
         self.increment_update_number()
         unapprover.decrement_user_approved()
         prev_editor.decrement_got_approved()
@@ -258,17 +269,17 @@ class Sentence(object):
         if self.state[u'num_approves'] < app.config['APPROVAL_THRESHOLD']:
             self.status = "reviewed" 
     '''
-    def num_approves():
+    def num_approves(self):
         return len(self.state[u'approvers'])
     
-    def add_approver(userID):
-        if self.state[u'approvers'].contains(userID):
+    def add_approver(self, userID):
+        if userID in self.state[u'approvers']:
             raise Exception
         self.state[u'approvers'].append(userID)
         if self.num_approves() >= app.config['APPROVAL_THRESHOLD']:
             self.status = "approved" 
 
-    def remove_approver(userID):
+    def remove_approver(self, userID):
         self.state[u'approvers'].remove(userID)
         if self.num_approves() < app.config['APPROVAL_THRESHOLD']:
             self.status = "reviewed" 

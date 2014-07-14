@@ -8,8 +8,8 @@
 </head>
 <body>
     <ul id="navigation">
-    Username: <input id="username" value="Judah"></input>
-    Target Language: {{language}}
+    Username: <input id="username" value="{{username}}" readonly></input>
+    Target Language: <input id="language" value="{{language}}" readonly></input>
     <table>
         {% for sentence in sentence_list %}
             <tr>
@@ -17,7 +17,7 @@
                 <td class="target" data-sentence='{{sentence|to_json}}'>
                     <textarea readonly class="target_sentence" id="{{sentence['sentenceID']}}-textarea">{{sentence['target_sentence']}}</textarea>
                     {% if sentence['status'] != 'approved' %}
-                    <button class="edit" id="{{sentence['sentenceID']}}-editButton">Edit</button>
+                    <button class="edit" id="{{sentence['sentenceID']}}-editButton">Edit</button> 
                     <button class="approve" id="{{sentence['sentenceID']}}-approveButton">Approve</button>
                     {% endif %}
                 </td>
