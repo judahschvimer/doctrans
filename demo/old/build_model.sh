@@ -1,3 +1,4 @@
+#make sure that ~/lm and ~/working do not already exist
 # tokenisation
 ~/mosesdecoder/scripts/tokenizer/tokenizer.perl -l en < ~/corpus/training/skunkworks.es-en.en > ~/corpus/skunkworks.es-en.tok.en -threads 16
 
