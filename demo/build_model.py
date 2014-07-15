@@ -8,6 +8,7 @@ import yaml
 import structures
 import datamine
 import logging
+import shutil
 from bash_command import command
 
 '''
@@ -22,12 +23,8 @@ Recommended Usage: nohup nice -n 17 python build_model.py config_train.yaml 2>&1
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("mylog")
-fh = logging.FileHandler('build_model.log')
-f = logging.Formatter("%(levelname)s %(asctime)s %(funcName)s %(lineno)d %(message)s")
-fh.setFormatter(f)
-logger.addHandler(fh)
 
-def pcommand(c, log):
+def pcommand(c, log=None):
     '''This function wraps the command module with logging functionality
     :Parameters:
         - 'c': command to run and log
@@ -36,11 +33,14 @@ def pcommand(c, log):
         -  a command result object
     '''
     logger.info(c)
-
-    log.write(c+"\n")
+    if log is not None:
+         log.write(c+"\n")
+    
     o = command(c)
-    log.write(o.out+"\n")
-    log.write(o.err+"\n")
+    if log is not None: 
+        log.write(o.out+"\n")
+    if log is not None:
+        log.write(o.err+"\n")
 
     logger.info(o.out)
     logger.info(o.err)
@@ -54,7 +54,6 @@ def log(curr_file, message):
     '''
     curr_file.write(message+"\n")
     logger.info(message)
-    log_file.write(message+"\n")
 
 def tokenize_corpus(corpus_dir, corpus_name,y):
     '''This function tokenizes a corpus
@@ -63,8 +62,8 @@ def tokenize_corpus(corpus_dir, corpus_name,y):
         - 'corpus_name': name of the corpus in the directory
         - 'y': yaml configuration dictionary
     '''
-    pcommand("{0}/scripts/tokenizer/tokenizer.perl -l en < {1}/{3}.en > {2}/{3}.tok.en -threads {4}".format(y.moses_path, corpus_dir, y.helper_dir, corpus_name, y.threads), log_file)
-    pcommand("{0}/scripts/tokenizer/tokenizer.perl -l en < {1}/{3}.{4} > {2}/{3}.tok.{4} -threads {5}".format(y.moses_path, corpus_dir, y.helper_dir, corpus_name, y.foreign, y.threads), log_file)
+    pcommand("{0}/scripts/tokenizer/tokenizer.perl -l en < {1}/{3}.en > {2}/{3}.tok.en -threads {4}".format(y.moses_path, corpus_dir, y.helper_dir, corpus_name, y.threads), None)
+    pcommand("{0}/scripts/tokenizer/tokenizer.perl -l en < {1}/{3}.{4} > {2}/{3}.tok.{4} -threads {5}".format(y.moses_path, corpus_dir, y.helper_dir, corpus_name, y.foreign, y.threads), None)
 
 def train_truecaser(corpus_name,y):
     '''This function trains the truecaser on a corpus
@@ -72,8 +71,8 @@ def train_truecaser(corpus_name,y):
         - 'corpus_name': name of the corpus in the directory
         - 'y': yaml configuration dictionary
     '''
-    pcommand("{0}/scripts/recaser/train-truecaser.perl --model {1}/truecase-model.en --corpus {1}/{2}.tok.en".format(y.moses_path, y.helper_dir, corpus_name), log_file)
-    pcommand("{0}/scripts/recaser/train-truecaser.perl --model {1}/truecase-model.{3} --corpus {1}/{2}.tok.{3}".format(y.moses_path, y.helper_dir, corpus_name, y.foreign), log_file)
+    pcommand("{0}/scripts/recaser/train-truecaser.perl --model {1}/truecase-model.en --corpus {1}/{2}.tok.en".format(y.moses_path, y.helper_dir, corpus_name), None)
+    pcommand("{0}/scripts/recaser/train-truecaser.perl --model {1}/truecase-model.{3} --corpus {1}/{2}.tok.{3}".format(y.moses_path, y.helper_dir, corpus_name, y.foreign), None)
 
 def truecase_corpus(corpus_name,y):
     '''This function truecases a corpus
@@ -81,8 +80,8 @@ def truecase_corpus(corpus_name,y):
         - 'corpus_name': name of the corpus in the directory
         - 'y': yaml configuration dictionary
     '''
-    pcommand("{0}/scripts/recaser/truecase.perl --model {1}/truecase-model.en < {1}/{2}.tok.en > {1}/{2}.true.en".format(y.moses_path, y.helper_dir, corpus_name), log_file)
-    pcommand("{0}/scripts/recaser/truecase.perl --model {1}/truecase-model.{3} < {1}/{2}.tok.{3} > {1}/{2}.true.{3}".format(y.moses_path, y.helper_dir, corpus_name, y.foreign), log_file)
+    pcommand("{0}/scripts/recaser/truecase.perl --model {1}/truecase-model.en < {1}/{2}.tok.en > {1}/{2}.true.en".format(y.moses_path, y.helper_dir, corpus_name), None)
+    pcommand("{0}/scripts/recaser/truecase.perl --model {1}/truecase-model.{3} < {1}/{2}.tok.{3} > {1}/{2}.true.{3}".format(y.moses_path, y.helper_dir, corpus_name, y.foreign), None)
 
 def clean_corpus(corpus_name,y):
     '''This function cleans a corpus to have proper length up to 80 words
@@ -90,7 +89,7 @@ def clean_corpus(corpus_name,y):
         - 'corpus_name': name of the corpus in the directory
         - 'y': yaml configuration dictionary
     '''
-    pcommand("{0}/scripts/training/clean-corpus-n.perl {1}/{2}.true {3} en {1}/{2}.clean 1 80".format(y.moses_path, y.helper_dir, corpus_name, y.foreign), log_file)
+    pcommand("{0}/scripts/training/clean-corpus-n.perl {1}/{2}.true {3} en {1}/{2}.clean 1 80".format(y.moses_path, y.helper_dir, corpus_name, y.foreign), None)
 
 def setup_train(y):
     '''This function sets up the training corpus
@@ -278,11 +277,15 @@ def main():
         return
  
     y = structures.BuildConfiguration(sys.argv[1])
+    
+    fh = logging.FileHandler('{0}/build_model.log'.format(y.model_path))
+    f = logging.Formatter("%(levelname)s %(asctime)s %(funcName)s %(lineno)d %(message)s")
+    fh.setFormatter(f)
+    logger.addHandler(fh)
+    
+
     config = get_run_args(y)
-    
-    global log_file
-    log_file = open("{0}/LOG.txt".format(y.model_path), "w", 1)
-    
+    shutil.copy(sys.argv[1], y.model_path)
     os.environ['IRSTLM'] = y.irstlm_path
     
     setup_train(y)
@@ -294,7 +297,6 @@ def main():
     pool.close()
     pool.join()
 
-    log_file.close()
     datamine.write_data(y.model_path)
     command('cat {0}/out.csv | mail -s "Output" {1}'.format(y.model_path, y.email))
     
