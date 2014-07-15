@@ -2,7 +2,7 @@ import re
 import os.path
 import sys
 import structures
-
+import logging
 
 '''
 This module is used for extracting the data received from experiments created with build_model.py
@@ -11,6 +11,8 @@ It saves the data in an out.csv file that can easily be viewed in any spreadshee
 It should be automatically called by build_model.py but can also be used on it's own
 Usage: python datamine.py config_train.yaml
 '''
+logger = logging.getLogger('datamine')
+logging.basicConfig(level=logging.DEBUG)
 
 def grab_data(log, out):
     '''This function grabs data from the log and prints it to the outfile

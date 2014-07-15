@@ -1,0 +1,45 @@
+{
+    "_id" : ObjectId("53c3f0a445afae29472a7263"),
+    "status" : "SMT",
+    "source_language" : "en",
+    "update_number" : 0,
+    "source_sentence" : "License",
+    "sentenceID" : "391a61e423644e5a8374f935eb876d8d",
+    "created_at" : ISODate("2014-07-14T15:00:52.226Z"),
+    "userID" : ObjectId("53bd85ee27289473d231fd18"),
+    "approvers" : [ ],
+    "sentence_num" : 3,
+    "target_sentence" : "Licencia",
+    "fileID" : ObjectId("53c3f0a445afae29472a725f"),
+    "target_language" : "es"
+}
+{
+    "_id" : ObjectId("53c3f0a445afae29472a7264"),
+    "status" : "SMT",
+    "source_language" : "en",
+    "update_number" : 0,
+    "source_sentence" : "This manual is licensed under a Creative Commons \"`Attribution-NonCommercial-ShareAlike 3.0 Unported <http://creativecommons.org/licenses/by-nc-sa/3.0/>`_\" (i.e. \"CC-BY-NC-SA\") license.",
+    "sentenceID" : "77bcce3ba66548d2944e42fcc3fc5c05",
+    "created_at" : ISODate("2014-07-14T15:00:52.227Z"),
+    "userID" : ObjectId("53bd85ee27289473d231fd18"),
+    "approvers" : [ ],
+    "sentence_num" : 4,
+    "target_sentence" : "Este manual está licenciado bajo una licencia de Creative Commons &quot; &apos; Atribución-NoComercial-CompartirIgual 3.0 Unported &lt; http : / / creativecommons.org / licenses / by-nc-sa / 3.0 / &gt; &apos; _ &quot; ( es decir &quot; CC-BY-NC-SA &quot; ) licencia .",
+    "fileID" : ObjectId("53c3f0a445afae29472a725f"),
+    "target_language" : "es"
+}
+{
+    "_id" : ObjectId("53c3f0a445afae29472a7265"),
+    "status" : "SMT",
+    "source_language" : "en",
+    "update_number" : 0,
+    "source_sentence" : "The MongoDB Manual is copyright |copy| 2011-|year| MongoDB, Inc.",
+    "sentenceID" : "f5a78db275c84ffe90817818b78ba0d9",
+    "created_at" : ISODate("2014-07-14T15:00:52.228Z"),
+    "userID" : ObjectId("53bd85ee27289473d231fd18"),
+    "approvers" : [ ],
+    "sentence_num" : 5,
+    "target_sentence" : "El Manual de MongoDB Manual tiene derechos de autor &#124; copy &#124; 2011- &#124; year &#124; MongoDB , Inc .",
+    "fileID" : ObjectId("53c3f0a445afae29472a725f"),
+    "target_language" : "es"
+}

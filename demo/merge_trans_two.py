@@ -1,12 +1,14 @@
 import sys
-from itertools import izip
-
+import logging
 '''
 This module prints each file line by line to compare lines and annotates them for easy viewing
 Unlike merge_trans.py, this one only works for 2 files but adds annotations
 It saves the output to merged.txt
 Usage: python merge_trans_two.py file1 file2
 '''
+
+logger = logging.getLogger('merge_trans_two')
+logging.basicConfig(level=logging.DEBUG)
 
 def main():
     if len(sys.argv) != 3:

@@ -22,7 +22,7 @@ Recommended Usage: nohup nice -n 17 python build_model.py config_train.yaml 2>&1
 
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("mylog")
+logger = logging.getLogger("build_model")
 
 def pcommand(c, log=None):
     '''This function wraps the command module with logging functionality
@@ -43,7 +43,7 @@ def pcommand(c, log=None):
         log.write(o.err+"\n")
 
     logger.info(o.out)
-    logger.info(o.err)
+    logger.error(o.err)
     return o
 
 def log(curr_file, message):

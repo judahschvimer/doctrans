@@ -57,7 +57,8 @@ def extract_entries(db, path, username, status, language):
     if not os.path.exists(path):
         print path, "doesn't exist"
         return
-
+    
+    print db
     userID = db['users'].find_one({'username': username})[u'_id']
 
     if os.path.isfile(path):

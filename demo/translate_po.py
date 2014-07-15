@@ -3,6 +3,7 @@ import sys
 import os.path
 import structures
 from translate_docs import translate_doc
+import logging
 
 '''
 This module translates a directory of po files
@@ -15,6 +16,8 @@ The goal of this module is to make a directory tree with translations ONLY by Mo
 Then those translations can be looked at separately from approved or human translated sentences
 '''
 
+logger = logging.getLogger('translate_po')
+logging.basicConfig(level=logging.DEBUG)
 
 def write_text_file(text_doc,po_file):
     '''This function writes a po file out to a text file
@@ -24,7 +27,7 @@ def write_text_file(text_doc,po_file):
     :Returns:
         - list of lists of configuration arguments
     '''
-    print "processing", po_file
+    logger.info("processing {0}".format(po_file))
     po = polib.pofile(po_file)
     for entry in po.untranslated_entries():
         text_doc.write(entry.msgid.encode('utf-8')+'\n')
@@ -36,11 +39,11 @@ def extract_untranslated_entries(path):
     '''
 
     if not os.path.exists(path):
-        print path, "doesn't exsit"
+        logger.error("{0} doesn't exsit".format(path))
         return
 
     # path is a directory now
-    print "walking directory", path
+    logger.info("walking directory {0}".format(path))
 
     #extract entries into temp
     open("temp","w").close()

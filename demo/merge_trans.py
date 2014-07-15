@@ -1,5 +1,6 @@
 import sys
 from itertools import izip
+import logging
 
 '''
 This module prints out all files line by line to compare lines
@@ -7,6 +8,8 @@ Just give it as many files as you want at the start, it'll finish when the first
 It saves the output to merged.txt
 Usage: python merge_trans.py file1 file2 file3....
 '''
+logger = logging.getLogger('merge_trans')
+logging.basicConfig(level=logging.DEBUG)
 
 def main():
     if len(sys.argv) < 3:

@@ -1,10 +1,14 @@
 import sys
 import re
+import logging
 
 '''
 This module is useful for taking a dictionary file from http://www.dicts.info/uddl.php and parsing it into a parallel corpus
 Usage python split_dict.py dictfile sourceFile targetFile
 '''
+
+logger = logging.getLogger('views')
+logging.basicConfig(level=logging.DEBUG)
 
 def split_dict(dict_fn, source_fn, target_fn):
      '''This function splits a dictionary in half 

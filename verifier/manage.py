@@ -1,17 +1,19 @@
 # Set the path
 import os, sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 from flask.ext.script import Manager, Server
-from app import app
-manager = Manager(app)
+from app import flask_app
+app = flask_app.app
 
-# Turn on debugger by default and reloader
-manager.add_command("runserver", Server(
-    use_debugger = True,
-    use_reloader = True,
-    host = '0.0.0.0')
-)
+from app import views
+from app import filters
 
 if __name__ == "__main__":
+    manager = Manager(app)
+
+    # Turn on debugger by default and reloader
+    manager.add_command("runserver", Server(
+        use_debugger = True,
+        use_reloader = True,
+        host = '0.0.0.0')
+    )
     manager.run()

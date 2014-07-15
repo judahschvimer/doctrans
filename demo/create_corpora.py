@@ -3,6 +3,7 @@ import sys
 import os
 import math
 import yaml
+import logging
 
 ''''
 This module creates the appropriate train, tune, and test corpora
@@ -12,6 +13,8 @@ It takes a config file similar to config_corpora.yaml
 Usage: python create_corpora.py config_corpora.yaml
 '''
 
+logger = logging.getLogger('create_corpora')
+logging.basicConfig(level=logging.DEBUG)
 
 def process_config(fn):
     '''This function takes a configuration file cand creates a dictionary of the useful information.
@@ -51,13 +54,13 @@ def verify_percs(d):
     '''
     for fn,s in d['sources'].iteritems():
         if s['percent_train'] + s['percent_tune'] + s['percent_test'] != 100:
-             print("Percentages don't add up to 100")
+             logger.error("Percentages don't add up to 100")
              return False
         elif s['percent_train'] < 0 or s['percent_tune'] < 0 or s['percent_test'] < 0:
-            print("percentage is below 0")
+            logger.error("percentage is below 0")
             return False
         elif s['percent_train'] > 100 or s['percent_tune'] > 100 or s['percent_test'] > 100:
-            print("percentage is above 100")
+            logger.error("percentage is above 100")
             return False
         
     for t in ['train', 'tune', 'test']:
@@ -65,7 +68,7 @@ def verify_percs(d):
         for fn,s in d['sources'].iteritems():
             tot += s['percent_of_'+t]
         if tot != 100:
-            print(t+" percentages don't add up to 100")
+            logger.error(t+" percentages don't add up to 100")
             return False
     
     return True
@@ -161,7 +164,7 @@ def create_corpora(config):
 
 def main():
     if len(sys.argv) != 2:
-        print "Usage: python", ' '.join(sys.argv), "config_corpora.yaml"
+        print("Usage: python", ' '.join(sys.argv), "config_corpora.yaml")
         return
 
     config = sys.argv[1]

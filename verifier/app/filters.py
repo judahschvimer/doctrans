@@ -1,4 +1,4 @@
-from . import app
+from flask_app import app
 import json
 from bson import json_util
 import urllib
@@ -45,7 +45,7 @@ def check_if_user_edited(user, sentenceID):
     return models.User(username=user)._id == s.state['userID']
 
 def get_userID(user):
-     ''' This filter gets userID ofa  user
+    ''' This filter gets userID ofa  user
     :Parameters:
         - 'user': the user
     :Returns:

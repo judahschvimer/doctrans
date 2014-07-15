@@ -1,7 +1,7 @@
 from flask import  request, redirect, render_template, url_for
 from flask.views import MethodView
 import models
-from . import app
+from flask_app import app
 import json
 from bson import json_util
 import logging

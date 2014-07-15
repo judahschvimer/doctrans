@@ -1,0 +1,24 @@
+{
+    "_id" : ObjectId("53b5d64a54e51102a4b81661"),
+    "username" : "wisdom",
+    "num_got_approved" : 0,
+    "num_reviewed" : 0,
+    "num_user_approved" : 0,
+    "trust_level" : "basic"
+}
+{
+    "_id" : ObjectId("53bc1a0a4606fd2955c81fda"),
+    "username" : "Judah",
+    "num_got_approved" : 0,
+    "num_reviewed" : 0,
+    "num_user_approved" : 0,
+    "trust_level" : "basic"
+}
+{
+    "_id" : ObjectId("53bd85ee27289473d231fd18"),
+    "username" : "Moses",
+    "num_got_approved" : 0,
+    "num_reviewed" : 0,
+    "num_user_approved" : 0,
+    "trust_level" : "basic"
+}

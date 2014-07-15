@@ -1,7 +1,7 @@
 import datetime
 from pymongo import MongoClient
 import logging
-from .  import app
+from flask_app import app
 
 logger = logging.getLogger('models')
 logging.basicConfig(level=logging.DEBUG)

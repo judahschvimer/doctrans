@@ -1,12 +1,15 @@
 import polib
 import sys
 import os.path
+import logging
 
 '''
 This module takes a po file and writes it to a parallel corpus
 It's useful for taking the po files and using them for training data for build_model.py
 Usage: python po_to_corpus.py path/to/*.po
 '''
+logger = logging.getLogger('po_to_corpus')
+logging.basicConfig(level=logging.DEBUG)
 
 def write_po_file(source_doc, target_doc, po_file_name):
     '''This function writes two files in english and spanish from a po file's translated entries
@@ -15,7 +18,7 @@ def write_po_file(source_doc, target_doc, po_file_name):
         - 'target_doc': doc to put target language text in 
         - 'po_file_name': po file to take text from 
     '''
-    print "processing", po_file_name
+    logger.info("processing {0}".format(po_file_name))
     po = polib.pofile(po_file_name)
     for entry in po.translated_entries():
         print >> source_doc, entry.msgid.encode('utf-8')
@@ -30,11 +33,11 @@ def extract_translated_entries(po_path, source_doc_fn, target_doc_fn):
     '''
 
     if os.path.exists(po_path) is False:
-        print path, "doesn't exsit"
+        logger.error("{0} doesn't exist".format(po_path))
         return
 
     # path is a directory now
-    print "walking directory", path
+    logger.info("walking directory {0}".format(path))
 
     with open(source_doc_fn, "w") as source_doc:
         with open(target_doc_fn, "w") as target_doc:
