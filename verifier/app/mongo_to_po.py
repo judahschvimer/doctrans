@@ -4,15 +4,19 @@ import os.path
 from pymongo import MongoClient
 import models
 
-##############################
-# This module takes the data in mongodb and writes out any approved sentence translations to the po files
-# make sure you copy the files first
-# Usage: python mongo_to_po.py path/to/*.po <-all>
-#############################
+''''
+This module takes the data in mongodb and writes out any approved (or all) sentence translations to the po files
+make sure you copy the files first to have a backup in case it messes up
+Usage: python mongo_to_po.py path/to/*.po port dbname <all>
+'''
 
-
-# writes any approved translations out to file
 def write_po(po_fn, db, all):
+    ''' writes approved or all trnalstions to file
+    :Parameters:
+        - 'po_fn': the path to the current po file to write
+        - 'db': mongodb database 
+        - 'all': whether or not you want all or just approved translations
+    '''    
     po = polib.pofile(po_fn)
 
     for entry in po.untranslated_entries():
@@ -33,14 +37,20 @@ def write_po(po_fn, db, all):
     # Save translated po file into a new file.
     po.save(po_fn)
 
-def write_entries(mongodb, all, path):
+def write_entries( path, db, all):
+    ''' goes through directory tree and writes po files to mongo
+    :Parameters:
+        - 'path': the path to the top level directory of the po_files
+        - 'db': mongodb database 
+        - 'all': whether or not you want all or just approved translations
+    '''    
 
     if not os.path.exists(path):
         print path, "doesn't exsit"
         return
 
     if os.path.isfile(path):
-        write_po(path, mongodb, all)
+        write_po(path, db, all)
         return
 
     # path is a directory now
@@ -50,16 +60,16 @@ def write_entries(mongodb, all, path):
     for root, dirs, files in os.walk(path):
         for filename in files:
             if filename.endswith(".po"):
-                write_po(os.path.join(root,filename), mongodb, all)
+                write_po(os.path.join(root,filename), db, all)
 
 
 def main():
-    if len(sys.argv) <= 5:
-        print "Usage: python", ' '.join(sys.argv), "path/to/*.po <all> <port> <dbname>"
+    if len(sys.argv) < 4 or len(sys.argv) > 5:
+        print "Usage: python", ' '.join(sys.argv), "path/to/*.po <port> <dbname> <all>"
         return
     all = False
 
-    if len(sys.argv) > 2 and sys.argv[3] is "all":
+    if len(sys.argv) is 5 and sys.argv[4] is "all":
         all = True
 
     db = MongoClient('localhost', int(sys.argv[4]))[sys.argv[5]]

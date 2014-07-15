@@ -56,7 +56,7 @@ def extract_untranslated_entries(path):
 
 
 def fill_target(target_po_file, translated_lines, start):
-    '''Fills a new po file with the translated lines
+    '''This function fills a new po file with the translated lines
     :Parameters:
         - 'target_po_file': the path to the current po file
         - 'translated_lines': the translations of the po file sentences
@@ -79,10 +79,10 @@ def fill_target(target_po_file, translated_lines, start):
     return start + i + 1
 
 def translate_po(path, config):
-    ''' first extracts the entries, then translates them, and then fills in all of the files
+    ''' This function first extracts the entries, then translates them, and then fills in all of the files
     :Parameters:
         - 'path': the path to the top level directory of the po_files
-        - 'sconfig': yaml configuration dictionary
+        - 'config': yaml configuration dictionary
     '''
     extract_untranslated_entries(path)
     trans_fn = translate_doc("temp",config)
