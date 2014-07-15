@@ -4,21 +4,23 @@ import os
 import math
 import yaml
 
-#########################
-# This module creates the appropriate train, tune, and test corpora
-# You must run it one language at a time in case the files don't match up exactly
-# It takes a config file similar to config_corpora.yaml
-# Usage: python create_corpora.py config_corpora.yaml
-#######################
-
+''''
+This module creates the appropriate train, tune, and test corpora
+You must run it one language at a time in case the files don't match up exactly, 
+however it would be easy to modify if you guarenteed they would match up
+It takes a config file similar to config_corpora.yaml
+Usage: python create_corpora.py config_corpora.yaml
+'''
 
 
 def process_config(fn):
-    """
-    Takes a file and returns a dictionary with corpus creation configuration and  additional default aggregated values. 
-
-    Adds <x,y,z> values to object. 
-    """
+    '''This function takes a configuration file cand creates a dictionary of the useful information.
+    It also sets defaults for certain arguments so they do not need to be specified by the user for it to work
+    :Parameters:
+        - 'fn': file name of the configuration file
+    :Returns:
+        - a dictionary of the configuration
+    '''
 
     with open(fn, 'r') as c:
         y=yaml.load(c)
@@ -40,92 +42,133 @@ def process_config(fn):
     return d
 
 
-#verify that percentages add up to 100 and are valid
 def verify_percs(d):
+    '''This function verifies that the percentages are valid and add up to 100
+    :Parameters:
+        - 'd': configuration dictionary
+    :Returns:
+        True if they're verified, false if there's a problem
+    '''
     for fn,s in d['sources'].iteritems():
-        if s['percent_train']+s['percent_tune']+s['percent_test'] != 100:
+        if s['percent_train'] + s['percent_tune'] + s['percent_test'] != 100:
              print("Percentages don't add up to 100")
-             return 1
-        elif s['percent_train']<0 or s['percent_tune']<0 or s['percent_test'] < 0:
+             return False
+        elif s['percent_train'] < 0 or s['percent_tune'] < 0 or s['percent_test'] < 0:
             print("percentage is below 0")
-            return 1
-        elif s['percent_train']>100 or s['percent_tune']>100 or s['percent_test'] >100:
+            return False
+        elif s['percent_train'] > 100 or s['percent_tune'] > 100 or s['percent_test'] > 100:
             print("percentage is above 100")
-            return 1
+            return False
         
     for t in ['train', 'tune', 'test']:
-        tot=0
+        tot = 0
         for fn,s in d['sources'].iteritems():
-            tot=tot+s['percent_of_'+t]
-        if(tot!=100):
+            tot += s['percent_of_'+t]
+        if tot != 100:
             print(t+" percentages don't add up to 100")
-            return 1
+            return False
     
-    return 0
+    return True
 
-#appends the correct amount of the corpus to the basefile, finishing up the file when necessary
 def append_corpus(percentage, num_copies, base_fn, new_fn, start, final=False):
+    '''This function appends the correct amount of the corpus to the basefile, finishing up the file when necessary so no data goes to waste
+    :Parameters:
+        - 'percentage': percentage of the file going into the corpus
+        - 'num_copies': number of copies of the file section going into the corpus
+        - 'base_fn': file name of the base file to append the corpus to 
+        - 'new_fn': file name of the new file to take the data from
+        - 'start': the line to start copying from in the new file
+        - 'final': if it's the final section of the file it makes sure to go to the end, assuming the length will be apporximately correct 
+    :Returns:
+        - The last line it copied until
+    '''
     with open(new_fn, 'r') as f:
         new_content = f.readlines()
     
     with open(base_fn, 'a') as f:
-        tot=int(len(new_content)*percentage/100)
-        i=1
-        while i<=num_copies:
-            if final==False:
+        tot = int(len(new_content) * percentage / 100)
+        i = 1
+        while i <= num_copies:
+            if final is False:
                 f.writelines(new_content[start:start+tot])
             else:
                 f.writelines(new_content[start:])
-            i=i+1   
-        if(i!=num_copies): f.writelines(new_content[start:start+int(tot*(num_copies-i+1))])
+            i += 1   
+        if i!=num_copies: 
+            f.writelines(new_content[start:start+int(tot*(num_copies-i+1))])
             
-    return start+tot
+    return start + tot
 
 def get_file_lengths(d):
+    '''This function adds the file lengths of the files to the configuration dictionary
+    :Parameters:
+        - 'd': configuration dictionary
+    '''
     for fn,s in d['sources'].iteritems():
         with open(s['file_path'], 'r') as f:
-            s['length']=len(f.readlines())
+            s['length'] = len(f.readlines())
 
-# returns the ideal total length of the corpus, the minimum length where each corpus section is used in full but the least is added
-def get_total_length(d,t):
+def get_total_length(d, corpus_type):
+    '''This function finds the ideal total length of the corpus
+    It finds the minimum length where each corpus section is used in full 
+    :Parameters:
+        - 'd': configuration dictionary
+        - 'corpus_type': either train, tune, or test
+    :Returns:
+        - total length of the corpus
+    '''
     tot_length=0
     i=0
     for fn,s in d['sources'].iteritems():
-        if s['percent_of_'+t]>0 and s['length']*100/s['percent_of_'+t]>tot_length:
-            tot_length=s['length']*100/s['percent_of_'+t]
-        i=i+1
+        if s['percent_of_'+corpus_type] > 0 and s['length'] * 100 / s['percent_of_'+corpus_type] > tot_length:
+            tot_length = s['length'] * 100 / s['percent_of_'+corpus_type]
+        i += 1
     return tot_length
  
 
-#creates the corpus from the config
 def create_corpora(config):
-    d=process_config(config)
+    '''This function takes the confiration file and runs through the files, appending them appropriately
+    It first verifies that all of the percentages add up and then it figures out how much of each file should go into each corpus and appends them
+    :Parameters:
+        - 'config': configuration of the corpora
+    '''
+    
+    d = process_config(config)
     get_file_lengths(d)
-    verify_percs(d)
-    if not os.path.exists(d['name']):
+    if verify_percs(d) is False:
+        return
+    if os.path.exists(d['name']) is False:
         os.makedirs(d['name'])
     
  
     #append files appropriately
     for t in ['train', 'tune', 'test']:
-        outfile="{0}/{1}.en-{2}.{3}".format(d['name'],t,d['foreign_language'],d['corpus_language'])
+        outfile = "{0}/{1}.en-{2}.{3}".format(d['name'], t ,d['foreign_language'] ,d['corpus_language'])
         open(outfile,'w').close()
-        tot_length=get_total_length(d,t)   
-        i=0
+        # finds the total length of the entire corpus
+        tot_length = get_total_length(d, t)   
+        i = 0
         for fn,s in d['sources'].iteritems():
-            s['num_copies']=tot_length*s['percent_of_'+t]/100/s['length']
-            final=False
-            if(t=='test'): final=True
-            s['end']=append_corpus(s['percent_'+t],s['num_copies'],outfile,s['file_path'],s['end'],final)
-            i=i+1
+            #finds how many copies of this file will make it the correct percentage of the full corpus
+            s['num_copies'] = tot_length * s['percent_of_'+t] / 100 / s['length']
+            final = False
+            if t is 'test': 
+                final = True
+            #appends the section of the file to the corpus
+            s['end'] = append_corpus(s['percent_'+t], s['num_copies'], outfile, s['file_path'], s['end'], final)
+            i += 1
             
 
 def main():
-    config=sys.argv[1]
+    if len(sys.argv) != 2:
+        print "Usage: python", ' '.join(sys.argv), "config_corpora.yaml"
+        return
+
+    config = sys.argv[1]
     if not os.path.exists(config):
             print(config +" could not be opened")
-            print_usage()
             exit(1)
+
     create_corpora(config)
     
 if __name__ == "__main__":

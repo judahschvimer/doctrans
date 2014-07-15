@@ -12,14 +12,14 @@ import models
 
 
 # writes any approved translations out to file
-def write_po(po_fn, mongodb, all):
+def write_po(po_fn, db, all):
     po = polib.pofile(po_fn)
 
     for entry in po.untranslated_entries():
         if all is False: 
-            t = mongodb['veri']['translations'].find({"status":"approved", "sentenceID":entry.tcomment})
+            t = db['translations'].find({"status":"approved", "sentenceID":entry.tcomment})
         else:
-            t = mongodb['veri']['translations'].find({"sentenceID":entry.tcomment})
+            t = db['translations'].find({"sentenceID":entry.tcomment})
             
         if t.count() > 1:
             print("multiple approved translations with sentenceID: "+entry.tcomment)
@@ -54,16 +54,16 @@ def write_entries(mongodb, all, path):
 
 
 def main():
-    if len(sys.argv) <= 1:
-        print "Usage: python", ' '.join(sys.argv), "path/to/*.po <all> <port>"
+    if len(sys.argv) <= 5:
+        print "Usage: python", ' '.join(sys.argv), "path/to/*.po <all> <port> <dbname>"
         return
     all = False
 
     if len(sys.argv) > 2 and sys.argv[3] is "all":
         all = True
 
-    mongodb = MongoClient('localhost', int(sys.argv[4]))
-    write_entries(mongodb, all, sys.argv[1])
+    db = MongoClient('localhost', int(sys.argv[4]))[sys.argv[5]]
+    write_entries(db, all, sys.argv[1])
 
 if __name__ == "__main__":
     main()

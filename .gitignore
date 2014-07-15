@@ -8,3 +8,5 @@ verifier/venv/*
 extract/temp
 extract/trans
 extract/temp.translated
+demo/temp
+demo/temp.*

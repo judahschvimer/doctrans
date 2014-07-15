@@ -1,5 +1,5 @@
-import polib
 import sys
+import polib
 import os.path
 from pymongo import MongoClient
 import models
@@ -35,13 +35,13 @@ def write_mongo(po_fn, userID, status, language, po_root):
         t.save()
         i += 1
 
-def extract_entries(mongodb, path, username, status, language):
+def extract_entries(db, path, username, status, language):
 
     if not os.path.exists(path):
         print path, "doesn't exist"
         return
 
-    userID=mongodb['veri']['users'].find_one({'username': username})[u'_id']
+    userID = db['users'].find_one({'username': username})[u'_id']
 
     if os.path.isfile(path):
         write_mongo(path, userID, status, language, os.path.dirname(path))
@@ -58,11 +58,11 @@ def extract_entries(mongodb, path, username, status, language):
 
 
 def main():
-    if len(sys.argv) < 6:
-        print "Usage: python", ' '.join(sys.argv), "<path/to/*.po> <username> <status> <language> <port>"
+    if len(sys.argv) < 7:
+        print "Usage: python", ' '.join(sys.argv), "<path/to/*.po> <username> <status> <language> <port> <dbname>"
         return
-    mongodb = MongoClient('localhost', int(sys.argv[5]))
-    extract_entries(mongodb, sys.argv[1],sys.argv[2], sys.argv[3], sys.argv[4])
+    db = MongoClient('localhost', int(sys.argv[5]))[sys.argv[6]]
+    extract_entries(db, sys.argv[1],sys.argv[2], sys.argv[3], sys.argv[4])
 
 if __name__ == "__main__":
     main()

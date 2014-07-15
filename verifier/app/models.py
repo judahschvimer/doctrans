@@ -1,20 +1,21 @@
 import datetime
 from pymongo import MongoClient
 import logging
-from . import app
+from .  import app
 
 logger = logging.getLogger('models')
 logging.basicConfig(level=logging.DEBUG)
 
 mongodb = MongoClient('localhost', 28000)
+db = mongodb[app.config['MONGO_DBNAME']]
 
 def get_sentences_in_file(fp, source_language, target_language):
     logger.debug(fp)
-    file = mongodb['veri']['files'].find_one({'source_language': source_language, 
+    file = db['files'].find_one({'source_language': source_language, 
                                               'target_language': target_language, 
                                               'file_path': fp}, 
                                              {'_id':1})
-    sentences = mongodb['veri']['translations'].find({'fileID': file[u'_id']},
+    sentences = db['translations'].find({'fileID': file[u'_id']},
                                                      {'_id': 1, 
                                                       'source_sentence': 1, 
                                                       'target_sentence': 1,
@@ -23,12 +24,12 @@ def get_sentences_in_file(fp, source_language, target_language):
     return sentences
 
 def get_languages():
-    languages = mongodb['veri']['translations'].find().distinct('target_language')  
+    languages = db['translations'].find().distinct('target_language')  
     logger.info(languages)
     return languages
 
 def get_file_names(source_language, target_language):
-    file_names = mongodb['veri']['files'].find({'source_language': source_language, 
+    file_names = db['files'].find({'source_language': source_language, 
                                                 'target_language': target_language},
                                                {'_id': 0,
                                                 'file_path': 1})  
@@ -37,14 +38,14 @@ def get_file_names(source_language, target_language):
 
 def audit(action, last_editor, current_user, doc, new_target_sentence=None):
     if action is 'edit':
-        mongodb['veri']['audits'].insert({'action': action,
+        db['audits'].insert({'action': action,
                                           'last_editor': last_editor, 
                                           'current_user': current_user,
                                           'original_document': doc, 
                                           'new_target_sentence': new_target_sentence,
                                           'timestamp': datetime.datetime.utcnow() })
     else:
-        mongodb['veri']['audits'].insert({'action': action, 
+        db['audits'].insert({'action': action, 
                                           'last_editor': last_editor,
                                           'current_user': current_user,
                                           'original_document': doc, 
@@ -192,15 +193,7 @@ class Sentence(object):
     def save(self):
         logger.info(self.state)
         self.state[u'_id'] = mongodb['veri']['translations'].save(self.state)
-    '''
-    def archive(self):
-        
-        #This function archives the previous version of this sentence object
-        #It finds an object in the database with the matching _id and then saves it to the archive collection
-        
-        record = mongodb['veri']['translations'].find_one({'_id':self.state[u'_id']},{'_id':0})
-        mongodb['veri']['archive'].save(record)
-    '''
+  
     @property
     def target_language(self):
         return self.state[u'target_language']
@@ -264,17 +257,7 @@ class Sentence(object):
     
     def increment_update_number(self):
         self.state[u'update_number'] = self.state[u'update_number'] + 1 
-    '''
-    def increment_num_approves(self):
-        self.state[u'num_approves'] = self.state[u'num_approves'] + 1
-        if self.state[u'num_approves'] >= app.config['APPROVAL_THRESHOLD']:
-            self.status = "approved" 
     
-    def decrement_num_approves(self):
-        self.state[u'num_approves'] = self.state[u'num_approves'] - 1
-        if self.state[u'num_approves'] < app.config['APPROVAL_THRESHOLD']:
-            self.status = "reviewed" 
-    '''
     def num_approves(self):
         return len(self.state[u'approvers'])
     
@@ -320,7 +303,6 @@ class User(object):
     def save(self): 
         logger.info(self.state)
         self.state[u'_id'] = mongodb['veri']['users'].save(self.state) 
-        # mongodb['veri']['users'].update({'username':self.state['username']}, {'$set':{'num_reviewed':self.state['num_reviewed'], 'num_user_approved':self.state['num_user_approved'], 'num_got_approved':self.state['num_got_approved']}},upsert=True)
     
     @property
     def _id(self):
