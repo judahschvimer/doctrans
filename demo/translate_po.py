@@ -81,21 +81,21 @@ def fill_target(target_po_file, translated_lines, start):
     po.save(target_po_file)
     return start + i + 1
 
-def translate_po(path, config):
+def translate_po(path, config, protected_file=None):
     ''' This function first extracts the entries, then translates them, and then fills in all of the files
     :Parameters:
         - 'path': the path to the top level directory of the po_files
         - 'config': yaml configuration dictionary
     '''
     extract_untranslated_entries(path)
-    trans_fn = translate_doc("temp",config)
+    trans_fn = translate_doc("temp",config, protected_file)
     start = 0
 
     with open(trans_fn, "r") as trans:
         trans_lines = trans.readlines()
 
     if os.path.isfile(path):
-        fill_target(new_path,trans_lines, start)
+        fill_target(path,trans_lines, start)
         return
 
     # fill in the directories in same order as they were read
@@ -106,11 +106,14 @@ def translate_po(path, config):
     
 
 def main():
-    if len(sys.argv) != 3:
-        print "Usage: python", ' '.join(sys.argv), "config path/to/*.po"
+    if len(sys.argv) < 3:
+        print "Usage: python", ' '.join(sys.argv), "config_train.yaml path/to/*.po protected_file"
         return
     y = structures.BuildConfiguration(sys.argv[1])
-    translate_po(sys.argv[2],  y)
+    if len(sys.argv) == 3:
+        translate_po(sys.argv[2], y)
+    elif len(sys.argv) == 4:
+        translate_po(sys.argv[2], y, sys.argv[3])
 
 if __name__ == "__main__":
     main()

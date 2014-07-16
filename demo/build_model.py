@@ -43,7 +43,7 @@ def pcommand(c, log=None):
         log.write(o.err+"\n")
 
     logger.info(o.out)
-    logger.error(o.err)
+    logger.info(o.err)
     return o
 
 def log(curr_file, message):

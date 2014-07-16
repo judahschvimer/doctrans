@@ -1,17 +1,16 @@
 import datetime
 from pymongo import MongoClient
 import logging
-from flask_app import app
+from flask_app import app, db
 
 logger = logging.getLogger('models')
 logging.basicConfig(level=logging.DEBUG)
 
-mongodb = MongoClient('localhost', 28000)
-db = mongodb[app.config['MONGO_DBNAME']]
 
-def get_sentences_in_file(fp, source_language, target_language):
+def get_sentences_in_file(fp, source_language, target_language, curr_db=db):
     '''This function  gets all of the sentences in the given file 
     :Parameters:
+        - 'db': database
         - 'fp': path to the file
         - 'source_language': source language
         - 'target_language': target language
@@ -19,11 +18,11 @@ def get_sentences_in_file(fp, source_language, target_language):
         - cursor of sentences
     '''
     logger.debug(fp)
-    file = db['files'].find_one({'source_language': source_language, 
+    file = curr_db['files'].find_one({'source_language': source_language, 
                                               'target_language': target_language, 
                                               'file_path': fp}, 
                                              {'_id':1})
-    sentences = db['translations'].find({'fileID': file[u'_id']},
+    sentences = curr_db['translations'].find({'fileID': file[u'_id']},
                                                      {'_id': 1, 
                                                       'source_sentence': 1, 
                                                       'target_sentence': 1,
@@ -31,33 +30,37 @@ def get_sentences_in_file(fp, source_language, target_language):
                                                       'userID':1} ).sort('sentence_num',1)
     return sentences
 
-def get_languages():
+def get_languages(curr_db=db):
     '''This function gets all of the unique target languages 
+    :Parameters:
+        -'db': database
     :Returns:
         - cursor of languages
     '''
-    languages = db['translations'].find().distinct('target_language')  
+    languages = curr_db['translations'].find().distinct('target_language')  
     logger.info(languages)
     return languages
 
-def get_file_names(source_language, target_language):
+def get_file_names(source_language, target_language, curr_db=db):
     '''This function  gets all of the file names for a given pair of languages 
     :Parameters:
+        - 'db': database
         - 'source_language': source language
         - 'target_language': target language
     :Returns:
         - cursor of file names
     '''
-    file_names = db['files'].find({'source_language': source_language, 
+    file_names = curr_db['files'].find({'source_language': source_language, 
                                                 'target_language': target_language},
                                                {'_id': 0,
                                                 'file_path': 1})  
     logger.info(file_names)
     return file_names
 
-def audit(action, last_editor, current_user, doc, new_target_sentence=None):
+def audit(action, last_editor, current_user, doc, new_target_sentence=None, curr_db=db):
     ''' This function saves an audit of the event that occurred 
     :Parameters:
+        - 'db': database
         - 'action': edit, approve, or unapprove
         - 'last editor': last person to edit the sentence before this action occurred
         - 'current user': user who did the action 
@@ -65,14 +68,14 @@ def audit(action, last_editor, current_user, doc, new_target_sentence=None):
         - 'new_target_sentence': new translation of the sentence, might be none if action is approved 
     '''
     if action is 'edit':
-        db['audits'].insert({'action': action,
+        curr_db['audits'].insert({'action': action,
                                           'last_editor': last_editor, 
                                           'current_user': current_user,
                                           'original_document': doc, 
                                           'new_target_sentence': new_target_sentence,
                                           'timestamp': datetime.datetime.utcnow() })
     else:
-        db['audits'].insert({'action': action, 
+        curr_db['audits'].insert({'action': action, 
                                           'last_editor': last_editor,
                                           'current_user': current_user,
                                           'original_document': doc, 
@@ -84,7 +87,8 @@ class File(object):
     It has a lock on it so no two people can edit the file at the same time. It has a priority to say how important translation it is
     It also has a set of languages 
     '''
-    def __init__(self, source=None, oid=None):
+    def __init__(self, source=None, oid=None, curr_db=db):
+        self.db = curr_db
         self.state = { u'file_path': None,
                        u'locked': False,
                        u'priority': 0,
@@ -100,13 +104,13 @@ class File(object):
                 self.state[k] = v
             self.save()
         elif oid is not None:
-            record = mongodb['veri']['files'].find_one({'_id':oid})
+            record = self.db['files'].find_one({'_id':oid})
             for k,v in record.iteritems():
                 self.state[k] = v
     
     def save(self):
         logger.info(self.state)
-        self.state[u'_id'] = mongodb['veri']['files'].save(self.state)
+        self.state[u'_id'] = self.db['files'].save(self.state)
  
     @property
     def file_path(self):
@@ -140,20 +144,21 @@ class File(object):
         self.state[u'locked'] = False
 
     def total_approved(self):
-        return mongodb['veri']['translations'].find({'fileID':self._id, 'status': 'approved'}).count()
+        return self.db['translations'].find({'fileID':self._id, 'status': 'approved'}).count()
 
     def total_reviewed(self):
-        return mongodb['veri']['translations'].find({'fileID':self._id, 'status': { '$in': ['reviewed', 'approved']}}).count()
+        return self.db['translations'].find({'fileID':self._id, 'status': { '$in': ['reviewed', 'approved']}}).count()
 
     def get_total(self):
-        return mongodb['veri']['translations'].find({'fileID':self._id}).count()
+        return self.db['translations'].find({'fileID':self._id}).count()
 
 class Sentence(object):
     ''' This class models a sentence.
     A sentence has a user who last edited it, a pair of languages and sentences in those languages, a file and a sentence number in that file.
     It also has a status, and update number, and approvers
     '''
-    def __init__(self, source=None, oid=None):
+    def __init__(self, source=None, oid=None, curr_db=db):
+        self.db = curr_db
         self.state = { u'created_at': datetime.datetime.utcnow(), 
                        u'userID': None, 
                        u'source_language': None, 
@@ -178,7 +183,9 @@ class Sentence(object):
                 self.state[k] = v
             self.save()
         elif oid is not None:
-            record = mongodb['veri']['translations'].find_one({'_id':oid})
+            logger.debug(oid)
+            record = self.db['translations'].find_one({'_id':oid})
+            logger.debug(self.db)
             for k,v in record.iteritems():
                 self.state[k] = v
 
@@ -200,18 +207,16 @@ class Sentence(object):
         self.save()
         
  
-    def approve(self, prev_editor, approver):
+    def approve(self, approver):
         '''This function approves the current sentence.
         :Parameters:
             - 'prev_editor': The userID of the person who last edited it
             - 'approver': The userID of the person who just approved it
         '''
-        if prev_editor._id == approver._id:
+        if approver._id == self.userID:
             logger.error('cannot approve own edit')
             raise Exception
-        if self.userID != prev_editor._id:
-            logger.debug('no match')
-            raise Exception
+        prev_editor = User(oid=self.userID, curr_db=self.db)
         audit("approve", prev_editor._id, approver._id, self.state)
         self.increment_update_number()
         approver.increment_user_approved()
@@ -223,7 +228,7 @@ class Sentence(object):
         approver.save()
         self.save()
 
-    def unapprove(self, prev_editor, unapprover):
+    def unapprove(self, unapprover):
         '''This function unapproves the current sentence.
         :Parameters:
             - 'prev_editor': The userID of the person who last edited it
@@ -232,9 +237,7 @@ class Sentence(object):
         if self.check_approver(unapprover._id) is False:
             logger.error("never approved sentence")
             raise exception
-        if self.userID !=  prev_editor._id:
-            logger.debug('no match')
-            raise Exception
+        prev_editor = User(oid=self.userID, curr_db=self.db)
         audit("unapprove", prev_editor._id, unapprover._id, self.state)
         self.increment_update_number()
         self.remove_approver(unapprover._id)
@@ -246,7 +249,7 @@ class Sentence(object):
     
     def save(self):
         logger.info(self.state)
-        self.state[u'_id'] = mongodb['veri']['translations'].save(self.state)
+        self.state[u'_id'] = self.db['translations'].save(self.state)
   
     @property
     def target_language(self):
@@ -294,6 +297,18 @@ class Sentence(object):
         return self.state[u'fileID']
     
     @property
+    def sentenceID(self):
+        return self.state[u'sentenceID']
+    
+    @property
+    def sentence_num(self):
+        return self.state[u'sentence_num']
+    
+    @property
+    def update_number(self):
+        return self.state[u'update_number']
+    
+    @property
     def create_at(self):
         return self.state[u'created_at']
     
@@ -311,6 +326,10 @@ class Sentence(object):
     
     def increment_update_number(self):
         self.state[u'update_number'] = self.state[u'update_number'] + 1 
+    
+    @property
+    def approvers(self):
+        return self.state[u'approvers']
     
     def num_approves(self):
         return len(self.state[u'approvers'])
@@ -335,7 +354,8 @@ class User(object):
     A user has a username, a number of reviews, and number of sentences that the user approved and anumber of sentences that the user edited that were approved
     A user also has a trust level specifying how much trust we put in them for their translations and approvals
     '''
-    def __init__(self, source=None, oid=None, username=None):
+    def __init__(self, source=None, oid=None, username=None, curr_db=db):
+        self.db = curr_db
         self.state = {u'username': username, 
                       u'num_reviewed': 0, 
                       u'num_user_approved': 0, 
@@ -352,17 +372,17 @@ class User(object):
                 self.state[k] = v
             self.save()
         elif oid is not None:
-            record = mongodb['veri']['users'].find_one({'_id':oid})
+            record = self.db['users'].find_one({'_id':oid})
             for k,v in record.iteritems():
                 self.state[k] = v
         elif username is not None:
-            record = mongodb['veri']['users'].find_one({'username':username})
+            record = self.db['users'].find_one({'username':username})
             for k,v in record.iteritems():
                 self.state[k] = v
          
     def save(self): 
         logger.info(self.state)
-        self.state[u'_id'] = mongodb['veri']['users'].save(self.state) 
+        self.state[u'_id'] = self.db['users'].save(self.state) 
     
     @property
     def _id(self):
@@ -375,6 +395,10 @@ class User(object):
     @property
     def num_translated(self):
         return self.state[u'num_reviewed']  
+    
+    @property
+    def num_reviewed(self):
+        return self.state[u'num_reviewed']
     
     @property
     def num_user_approved(self):

@@ -1,7 +1,7 @@
 from flask import  request, redirect, render_template, url_for
 from flask.views import MethodView
 import models
-from flask_app import app
+from flask_app import app, db
 import json
 from bson import json_util
 import logging
@@ -68,9 +68,8 @@ def approve_translation():
     j = fix_json(request.json)
     t = models.Sentence(oid=j[u'old'][u'_id'])
     approver = models.User(username=j[u'new'][u'approver'])
-    prev_editor = models.User(oid=t.userID)
     try:
-        t.approve(prev_editor, approver)
+        t.approve(approver)
         return json.dumps({ "code:":200, "msg":"Approval Succeeded"}),200 
     except Exception as e:
         logger.error(traceback.format_exc())
@@ -85,9 +84,8 @@ def unapprove_translation():
     j = fix_json(request.json)
     t = models.Sentence(oid=j[u'old'][u'_id'])
     unapprover = models.User(username=j[u'new'][u'unapprover'])
-    prev_editor = models.User(oid=t.userID)
     try:
-        t.unapprove(prev_editor, unapprover)
+        t.unapprove(unapprover)
         return json.dumps({ "code:":200, "msg":"Unapproval Succeeded"}),200 
     except Exception:
         return json.dumps({ "code:":406, "msg":"Unapproval Failed"}),200 

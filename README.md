@@ -11,6 +11,7 @@
     - merge_trane_two.py: same as merge_trans but optimized for two files and annotates the lines
     - translate_docs.py: translates a document with the moses decoder
     - translate_po.py: translates a po file or directory of po files
+    - protected.re: This file lists a set of regex's that the tokenizer will not tokenize. URLs and paths are good things to put in here.
   - Old (deprecated, but still available):
     - build_model_filter.py: same as build_model.py but also filters the data (make sure it's made up to date if used) 
     - build_model.sh: fully builds a model

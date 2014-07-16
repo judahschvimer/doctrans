@@ -1,8 +1,10 @@
 from flask import Flask
-from flask.ext.mongoengine import MongoEngine
 import config
+from pymongo import MongoClient
 
 app = Flask(__name__)
 app.config.from_object(config)
 
-db = MongoEngine(app)
+mongodb = MongoClient('localhost', app.config['MONGO_PORT'])
+db = mongodb[app.config['MONGO_DBNAME']]
+

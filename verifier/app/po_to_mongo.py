@@ -3,6 +3,7 @@ import polib
 import os.path
 from pymongo import MongoClient
 import models
+import logging
 
 '''
 This module takes the po files and writes the sentences to mongodb
@@ -11,6 +12,9 @@ The file should have each entry from the given username translated and each othe
 For every group of po files you input them with the appropriate username and status
 Usage: python po_to_mongo /path/to/*.po username status language
 '''
+
+logger = logging.getLogger('po_to_mongo')
+logging.basicConfig(level=logging.DEBUG)
 
 def write_mongo(po_fn, userID, status, language, po_root):
     '''write a po_file to mongodb
@@ -40,7 +44,7 @@ def write_mongo(po_fn, userID, status, language, po_root):
                               u'userID': userID,
                               u'status': status, 
                               u'update_number': 0 })
-        print t.state
+        logger.info(t.state)
         t.save()
         i += 1
 
@@ -55,10 +59,10 @@ def extract_entries(db, path, username, status, language):
     '''
 
     if not os.path.exists(path):
-        print path, "doesn't exist"
+        logger.error("{0} doesn't exist".format(path))
         return
     
-    print db
+    logger.debug(db)
     userID = db['users'].find_one({'username': username})[u'_id']
 
     if os.path.isfile(path):
@@ -66,7 +70,7 @@ def extract_entries(db, path, username, status, language):
         return
 
     # path is a directory now
-    print "walking directory", path
+    logger.info("walking directory {0}".format(path))
 
     # Write parallel sentences into two files
     for root, dirs, files in os.walk(path):

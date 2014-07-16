@@ -3,12 +3,16 @@ import sys
 import os.path
 from pymongo import MongoClient
 import models
+import logging
 
 ''''
 This module takes the data in mongodb and writes out any approved (or all) sentence translations to the po files
 make sure you copy the files first to have a backup in case it messes up
 Usage: python mongo_to_po.py path/to/*.po port dbname <all>
 '''
+
+logger = logging.getLogger('mongo_to_po')
+logging.basicConfig(level=logging.DEBUG)
 
 def write_po(po_fn, db, all):
     ''' writes approved or all trnalstions to file
@@ -26,14 +30,14 @@ def write_po(po_fn, db, all):
             t = db['translations'].find({"sentenceID":entry.tcomment})
             
         if t.count() > 1:
-            print("multiple approved translations with sentenceID: "+entry.tcomment)
+            logger.info("multiple approved translations with sentenceID: "+entry.tcomment)
             continue
         if t.count() is 1:        
-            print t[0]
+            logger.info(t[0])
             entry.msgstr = t[0]['translation'].strip().encode("utf-8")
-            print entry.msgstr
+            logger.info(entry.msgstr)
 
-    print "po.translated_entries()", po.translated_entries()
+    logger.info("po.translated_entries()\n {0}".format(po.translated_entries()))
     # Save translated po file into a new file.
     po.save(po_fn)
 
@@ -46,7 +50,7 @@ def write_entries( path, db, all):
     '''    
 
     if not os.path.exists(path):
-        print path, "doesn't exsit"
+        logger.error("{0} doesn't exist".format(path))
         return
 
     if os.path.isfile(path):
@@ -54,7 +58,7 @@ def write_entries( path, db, all):
         return
 
     # path is a directory now
-    print "walking directory", path
+    logger.info("walking directory {0}".format(path))
 
     # Write parallel sentences into two files
     for root, dirs, files in os.walk(path):
