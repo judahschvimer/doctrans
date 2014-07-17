@@ -19,15 +19,16 @@ def get_sentences_in_file(fp, source_language, target_language, curr_db=db):
     '''
     logger.debug(fp)
     file = curr_db['files'].find_one({'source_language': source_language, 
-                                              'target_language': target_language, 
-                                              'file_path': fp}, 
-                                             {'_id':1})
+                                      'target_language': target_language, 
+                                      'file_path': fp}, 
+                                      {'_id':1})
     sentences = curr_db['translations'].find({'fileID': file[u'_id']},
-                                                     {'_id': 1, 
-                                                      'source_sentence': 1, 
-                                                      'target_sentence': 1,
-                                                      'approvers':1,
-                                                      'userID':1} ).sort('sentence_num',1)
+                                             {'_id': 1, 
+                                              'source_sentence': 1, 
+                                              'target_sentence': 1,
+                                              'approvers':1,
+                                              'status':1,
+                                              'userID':1} ).sort('sentence_num',1)
     return sentences
 
 def get_languages(curr_db=db):
@@ -185,7 +186,6 @@ class Sentence(object):
         elif oid is not None:
             logger.debug(oid)
             record = self.db['translations'].find_one({'_id':oid})
-            logger.debug(self.db)
             for k,v in record.iteritems():
                 self.state[k] = v
 
@@ -197,14 +197,24 @@ class Sentence(object):
         '''
         if self.check_approver(new_editor._id):
             logger.error("editor already approved")
-            raise Exception
+            raise MyError("Already approved sentence", 403)
+        if new_target_sentence == self.target_sentence:
+            logger.error("no change was made")
+            raise MyError("No change made", 403)
+        if self.status is 'approved':
+            logger.error("can't edit approved sentence")
+            raise MyError("Can't edit approved sentence", 403)
+
         audit("edit", self.userID, new_editor._id, self.state, new_target_sentence)
         self.increment_update_number()
         self.userID = new_editor._id
         self.target_sentence = new_target_sentence
         self.status = 'reviewed'
         self.state['approvers'] = []
+
+        new_editor.increment_num_reviewed()
         self.save()
+        new_editor.save()
         
  
     def approve(self, approver):
@@ -215,7 +225,11 @@ class Sentence(object):
         '''
         if approver._id == self.userID:
             logger.error('cannot approve own edit')
-            raise Exception
+            raise MyError("Can't approve own edit", 403)
+        if approver._id in self.approvers:
+            logger.error('cannot approve twice')
+            raise MyError("Can't approve sentence twice", 403)
+            
         prev_editor = User(oid=self.userID, curr_db=self.db)
         audit("approve", prev_editor._id, approver._id, self.state)
         self.increment_update_number()
@@ -236,7 +250,7 @@ class Sentence(object):
         '''
         if self.check_approver(unapprover._id) is False:
             logger.error("never approved sentence")
-            raise exception
+            raise MyError("Never approved sentence", 403)
         prev_editor = User(oid=self.userID, curr_db=self.db)
         audit("unapprove", prev_editor._id, unapprover._id, self.state)
         self.increment_update_number()
@@ -336,12 +350,15 @@ class Sentence(object):
     
     def add_approver(self, userID):
         if userID in self.state[u'approvers']:
-            raise Exception
+            raise MyError("Can't approve sentence twice", 403)
         self.state[u'approvers'].append(userID)
         if self.num_approves() >= app.config['APPROVAL_THRESHOLD']:
             self.status = "approved" 
 
     def remove_approver(self, userID):
+        if userID not in self.state[u'approvers']:
+            raise MyError("Never approved sentence", 403)
+        
         self.state[u'approvers'].remove(userID)
         if self.num_approves() < app.config['APPROVAL_THRESHOLD']:
             self.status = "reviewed" 
@@ -400,25 +417,31 @@ class User(object):
     def num_reviewed(self):
         return self.state[u'num_reviewed']
     
+    def increment_num_reviewed(self):
+        self.state[u'num_reviewed'] += 1
+    
+    def decrement_num_reviewed(self):
+        self.state[u'num_reviewed'] -= 1
+    
     @property
     def num_user_approved(self):
         return self.state[u'num_user_approved']  
     
     def increment_user_approved(self):
-        self.state[u'num_user_approved'] = self.state[u'num_user_approved'] + 1
+        self.state[u'num_user_approved'] += 1
     
     def decrement_user_approved(self):
-        self.state[u'num_user_approved'] = self.state[u'num_user_approved'] - 1
+        self.state[u'num_user_approved'] -= 1
     
     @property
     def num_got_approved(self):
         return self.state[u'num_got_approved'] 
 
     def increment_got_approved(self):
-        self.state[u'num_got_approved'] = self.state[u'num_got_approved'] + 1
+        self.state[u'num_got_approved'] += 1
     
     def decrement_got_approved(self):
-        self.state[u'num_got_approved'] = self.state[u'num_got_approved'] - 1
+        self.state[u'num_got_approved'] -= 1
 
     @property
     def trust_level(self):
@@ -430,4 +453,10 @@ class User(object):
            self.state[u'trust_level'] = value
         else: 
            raise TypeError    
-    
+
+class MyError(Exception):
+    def __init__(self, msg, code):
+        self.msg = msg
+        self.code = code
+    def __str__(self):
+        return  self.msg

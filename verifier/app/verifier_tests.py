@@ -9,6 +9,7 @@ import pymongo
 import os
 import logging
 import models
+from random import randint
 
 MONGODB_TEST_PORT = 31415
 PATH_TO_MONGOD = '/home/wisdom/mongodb/2.6.0-rc0'
@@ -87,17 +88,39 @@ class TestCase(unittest.TestCase):
         self.db = self.client[DBNAME]
 
     def sentence(self, id=None):
+        '''This method wraps around the sentence creator to provide the correct db'''
         s = models.Sentence(oid=id, curr_db=self.db)
         return s
     
     def user(self, id=None):
+        '''This method wraps around the user creator to provide the correct db'''
         u = models.User(oid=id, curr_db=self.db)
         return u
     
     def file(self, id=None):
+        '''This method wraps around the file creator to provide the correct db'''
         f = models.File(oid=id, curr_db=self.db)
         return f
-    
+   
+    def jumble_data(self):
+        '''This method does random updates to the data'''
+        for i in range(randint(0,5)):
+            try:
+                s = self.sentence(id='s{0}'.format(randint(1,3)))
+                u = self.user(id='u{0}'.format(randint(1,3)))
+                s.edit(u,"foo{0}".format(i))
+            except Exception:
+                continue
+ 
+        for i in range(randint(0,3)):
+            try:
+                s = self.sentence(id='s{0}'.format(randint(1,3)))
+                u = self.user(id='u{0}'.format(randint(1,3)))
+                s.approve(u)
+            except Exception:
+                continue
+ 
+ 
     def setUp(self):
         '''This method sets up the test by deleting all of the tables in the database and reloading it'''
         super(TestCase, self).setUp()
@@ -109,36 +132,22 @@ class TestCase(unittest.TestCase):
             my_util.load_json(f,self.db)
 
     def test_setup(self):
-        '''This test tests that the database sets up properly''' 
+        '''This test tests that the database sets up properly'''
         pass
 
     def test_edit(self):
         '''This test tests a simple edit works as it should'''
-        logger.debug(self.db)
-        logger.debug(self.db.translations.find_one({'_id':u's1'}))
         s = self.sentence(id=u's1')
         s_old = self.sentence(id=u's1')
-        moses = self.user(id=u'u1')
         judah = self.user(id=u'u2')
         judah_old = self.user(id=u'u2')
-        s.edit(judah, u'foo bar') 
+        s.edit(judah, u'foo bar')
         s = self.sentence(id=u's1')
         judah = self.user(id=u'u2')
-        self.assertEquals(s.update_number, 1)
+        self.assertEquals(s.update_number, s_old.update_number+1)
         self.assertEquals(s.target_sentence,u'foo bar')
-        self.assertEquals(s.userID,judah._id)
-        self.assertEquals(s.source_sentence, s_old.source_sentence)
-        self.assertEquals(s.sentenceID, s_old.sentenceID)
-        self.assertEquals(s.sentence_num, s_old.sentence_num)
-        self.assertEquals(s.source_language, s_old.source_language)
-        self.assertEquals(s.target_language, s_old.target_language) 
         self.assertEquals(s.status, u'reviewed')
-        self.assertEquals(s.approvers, [])
 
-        self.assertEquals(judah.username, judah_old.username)
-        self.assertEquals(judah.num_got_approved, judah_old.num_got_approved)
-        self.assertEquals(judah.num_user_approved, judah_old.num_user_approved) 
-        self.assertEquals(judah.trust_level, judah_old.trust_level)
         self.assertEquals(judah.num_reviewed, 1)
 
     def test_approve(self):
@@ -147,27 +156,105 @@ class TestCase(unittest.TestCase):
         s_old = self.sentence(id=u's1')
         judah = self.user(id=u'u2')
         judah_old = self.user(id=u'u2')
-        s.approve(judah) 
+        moses_old = self.user(id=u'u1')
+        s.approve(judah)
         s = self.sentence(id=u's1')
         judah = self.user(id=u'u2')
         moses = self.user(id=u'u1')
-        self.assertEquals(s.update_number, 1)
-        self.assertEquals(s.target_sentence, s_old.target_sentence)
-        self.assertEquals(s.userID, s_old.target_sentence)
-        self.assertEquals(s.source_sentence, s_old.source_sentence)
-        self.assertEquals(s.sentenceID, s_old.sentenceID)
-        self.assertEquals(s.sentence_num, s_old.sentence_num)
-        self.assertEquals(s.source_language, s_old.source_language) 
-        self.assertEquals(s.target_language, s_old.target_language) 
-        self.assertEquals(s.status, u'reviewed')
-        self.assertEquals(s.approvers, [u'u2'])
+        self.assertEquals(s.update_number, s_old.update_number+1)
+        self.assertTrue(u'u2' in s.approvers)
 
-        self.assertEquals(judah.username, judah_old.username)
-        self.assertEquals(judah.num_got_approved, judah_old.num_got_approved) 
-        self.assertEquals(judah.num_user_approved, judah_old.num_user_approved + 1)  
-        self.assertEquals(judah.trust_level, judah_old.trust_level) 
-        self.assertEquals(judah.num_reviewed, 1)
-       
+        self.assertEquals(judah.num_user_approved, judah_old.num_user_approved+1)
+        self.assertEquals(moses.num_got_approved, moses_old.num_got_approved+1)
+
+    def test_unapprove(self):
+        '''This method tests that the approve command works properly'''
+        s_pre = self.sentence(id=u's1')
+        judah_pre = self.user(id=u'u2')
+        s_pre.approve(judah_pre)
+ 
+        s = self.sentence(id=u's1')
+        s_old = self.sentence(id=u's1')
+        judah = self.user(id=u'u2')
+        judah_old = self.user(id=u'u2')
+        moses_old = self.user(id=u'u1')
+        s.unapprove(judah) 
+        s = self.sentence(id=u's1')
+        judah = self.user(id=u'u2')
+        moses = self.user(id=u'u1')
+        self.assertEquals(s.update_number, s_old.update_number+1)
+        self.assertFalse(u'u2' in s.approvers)
+
+        self.assertEquals(judah.num_user_approved, judah_old.num_user_approved-1)
+        self.assertEquals(moses.num_got_approved, moses_old.num_got_approved-1)
+
+    def test_sentence_approved(self):
+        '''This method tests that if a sentence is approved twice it gets approved'''
+        s = self.sentence(id=u's1')
+        judah = self.user(id=u'u2')
+        wisdom = self.user(id=u'u3')
+        s.approve(judah) 
+        s.approve(wisdom) 
+        s = self.sentence(id=u's1')
+        self.assertEquals(s.status, 'approved')
+
+    def test_approve_twice(self):
+        '''This method tests that you can't approve a sentence twice'''
+        s_pre = self.sentence(id=u's1')
+        judah_pre = self.user(id=u'u2')
+        s_pre.approve(judah_pre)
+        
+        s = self.sentence(id=u's1')
+        judah = self.user(id=u'u2')
+        with self.assertRaises(Exception):
+            s.approve(judah) 
+
+    def test_approve_own_edit(self):
+        '''This method tests that you can't approve a setence you edited last'''
+        s_pre = self.sentence(id=u's1')
+        judah_pre = self.user(id=u'u2')
+        s_pre.edit(judah_pre, "edited")
+        
+        s = self.sentence(id=u's1')
+        judah = self.user(id=u'u2')
+        with self.assertRaises(Exception):
+            s.approve(judah) 
+        
+    def test_unapprove_no_approve(self):
+        '''This method tests that you can't unapprove a sentence you haven't approved'''
+        s = self.sentence(id=u's1')
+        judah = self.user(id=u'u2')
+        with self.assertRaises(Exception):
+            s.unapprove(judah) 
+
+    def test_approve_own_edit(self):
+        '''This method tests that you can't approve a setence you edited last'''
+        s_pre = self.sentence(id=u's1')
+        judah_pre = self.user(id=u'u2')
+        s_pre.edit(judah_pre, "edited")
+        
+        s = self.sentence(id=u's1')
+        judah = self.user(id=u'u2')
+        with self.assertRaises(Exception):
+            s.approve(judah)
+
+    def test_edit_own_approve(self):
+        '''This method tests that you can't edit something you've approved'''
+        s_pre = self.sentence(id=u's1')
+        judah_pre = self.user(id=u'u2')
+        s_pre.approve(judah_pre)
+        
+        s = self.sentence(id=u's1')
+        judah = self.user(id=u'u2')
+        with self.assertRaises(Exception):
+            s.edit(judah, "edited") 
+
+    def test_edit_no_change(self):
+        '''This method tests that you can't make an edit with no change'''
+        s = self.sentence(id=u's1')
+        judah = self.user(id=u'u2')
+        with self.assertRaises(Exception):
+            s.edit(judah, s.target_sentence) 
 
 if __name__ == '__main__':
     unittest.main()

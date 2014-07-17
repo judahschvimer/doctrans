@@ -10,6 +10,8 @@
     <ul id="navigation" data-userid='{{username|get_userID}}'>
     Username: <input id="username" value="{{username}}" readonly></input>
     Target Language: <input id="language" value="{{language}}" readonly></input>
+    <input id="error-message" readonly value=""></input>
+    <p class="request_message"> </p>
     <table>
         {% for sentence in sentence_list %}
             <tr>

@@ -39,3 +39,8 @@ div.target_side{
 button.approve, button.unapprove, button.edit{
     float: right;
 }
+
+#error-message{
+    color: red;
+    border: 0;
+}

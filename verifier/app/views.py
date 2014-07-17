@@ -46,19 +46,14 @@ def edit_translation():
     '''
     try:
         j = fix_json(request.json)
-        logger.debug(j)
         t = models.Sentence(oid=j[u'old'][u'_id'])
-
-        if t.status is "approved":
-            return json.dumps({ "code": 404 , "msg": "Can't edit approved sentence" }), 404
-
         editor = models.User(username=j[u'new'][u'editor'])
         t.edit(editor, j[u'new'][u'new_target_sentence']) 
         return json.dumps({ "code": 200 , "msg": "Edit Succeeded" }), 200 
     except KeyError:
-        return json.dumps({ "code": 401 , "msg": "Edit Failed" }), 404
-    except Exception:
-        return json.dumps({ "code": 402 , "msg": "Edit Failed" }), 404
+        return json.dumps({ "code": 401 , "msg": "Edit Failed" }), 500
+    except models.MyError as e:
+        return json.dumps({ "code": int(e.code) , "msg": e.msg }), int(e.code)
         
 @app.route('/approve', methods=['POST'])
 def approve_translation():
@@ -71,9 +66,8 @@ def approve_translation():
     try:
         t.approve(approver)
         return json.dumps({ "code:":200, "msg":"Approval Succeeded"}),200 
-    except Exception as e:
-        logger.error(traceback.format_exc())
-        return json.dumps({ "code:":405, "msg":"Approval Failed"}),405
+    except models.MyError as e:
+        return json.dumps({ "code": e.code , "msg": e.msg }), e.code
         
 
 @app.route('/unapprove', methods=['POST'])
@@ -87,8 +81,8 @@ def unapprove_translation():
     try:
         t.unapprove(unapprover)
         return json.dumps({ "code:":200, "msg":"Unapproval Succeeded"}),200 
-    except Exception:
-        return json.dumps({ "code:":406, "msg":"Unapproval Failed"}),200 
+    except models.MyError as e:
+        return json.dumps({ "code": e.code , "msg": e.msg }), e.code
         
 
 def fix_json(json_object):

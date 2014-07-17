@@ -45,7 +45,7 @@ def check_if_user_edited(user, sentenceID):
     return models.User(username=user)._id == s.state['userID']
 
 def get_userID(user):
-    ''' This filter gets userID ofa  user
+    ''' This filter gets userID of a user
     :Parameters:
         - 'user': the user
     :Returns:
@@ -53,9 +53,18 @@ def get_userID(user):
     '''
     return models.User(username=user)._id
 
+def list_length(list):
+    ''' This filter gets the length of a list
+    :Parameters:
+        - 'list': the list
+    :Returns:
+        - length of the list
+    '''
+    return len(list)
 
 app.jinja_env.filters['to_json'] = to_json
 app.jinja_env.filters['pathname2url'] = pathname2url
 app.jinja_env.filters['check_if_user_approved'] = check_if_user_approved
 app.jinja_env.filters['check_if_user_edited'] = check_if_user_edited
 app.jinja_env.filters['get_userID'] = get_userID
+app.jinja_env.filters['list_length'] = list_length

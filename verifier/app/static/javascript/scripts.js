@@ -33,8 +33,20 @@ function edit_html(e){
     e.parent().children(".target_sentence").attr("readOnly",false);
     e.parent().children(".target_sentence").css("backgroundColor", "#FFFFFF");
     e.parent().children(".edit").off('click').on('click',save);
+    
+}
+
+function toggle_message(msg, color){
+
+    $('#error-message').val(msg);   
+    $('#error-message').css("color",color);  
+    $("#error-message").show()
+    setTimeout(function() {
+            $("#error-message").hide()
+    }, 3000); 
 
 }
+
 function save(){
     var new_content={"editor": $("#username").val(), "new_target_sentence": $(this).parent().children(".target_sentence").val()};
     var j={"old": $(this).parent().data("sentence"), "new": new_content};
@@ -43,8 +55,16 @@ function save(){
           contentType: "application/json; charset=utf-8",
           url: "/add",
           data: JSON.stringify(j),
-          dataType: "json"
-    }).done().fail();
+          dataType: "json",
+          success: function(data, textStatus, jqxhr)
+                   {
+                        toggle_message(data.msg, "green");
+                   },
+          error: function(data, textStatus, jqxhr)
+                   {
+                        toggle_message(data.responseJSON.msg, "red");
+                   }
+    });
 }
 
 function approve(){
@@ -57,12 +77,19 @@ function approve(){
           contentType: "application/json; charset=utf-8",
           url: "/approve",
           data: JSON.stringify(j),
-          dataType: "json"
-    }).done().fail();
+          dataType: "json",
+          success: function(data, textStatus, jqxhr)
+                   {
+                        toggle_message(data.msg, "green");
+                   },
+          error: function(data, textStatus, jqxhr)
+                   {
+                        toggle_message(data.responseJSON.msg, "red");
+                   }
+    });
 }
 
 function approve_html(e){
-    console.log(e);
     e.parent().children(".edit").attr("disabled",true);
     e.parent().children(".approve").html("Unapprove");
     e.parent().children(".approve").off('click').on('click', unapprove);
@@ -79,8 +106,16 @@ function unapprove(){
           contentType: "application/json; charset=utf-8",
           url: "/unapprove",
           data: JSON.stringify(j),
-          dataType: "json"
-    }).done().fail();
+          dataType: "json",
+          success: function(data, textStatus, jqxhr)
+                   {
+                        toggle_message(data.msg, "green");
+                   },
+          error: function(data, textStatus, jqxhr)
+                   {
+                        toggle_message(data.responseJSON.msg, "red");
+                   }
+    });
 }  
 
 function unapprove_html(e){
