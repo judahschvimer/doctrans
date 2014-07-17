@@ -52,11 +52,21 @@ def get_file_names(source_language, target_language, curr_db=db):
         - cursor of file names
     '''
     file_names = curr_db['files'].find({'source_language': source_language, 
-                                                'target_language': target_language},
-                                               {'_id': 0,
-                                                'file_path': 1})  
-    logger.info(file_names)
-    return file_names
+                                        'target_language': target_language},
+                                       {'_id': 1}) 
+    list = []
+    for f in file_names:
+        file = File(oid=f[u'_id'])
+        logger.debug(file.file_path)
+        if file.num_sentences == 0:
+            continue
+        data = {'file_path': file.file_path, 'num_sentences': file.get_total(), 'num_reviewed': file.num_reviewed(), "num_approved": file.num_approved()}
+        #list.append({'file_path': file.file_path, 'num_sentences': file.num_sentences, 'total_reviewed': file.total_reviewed(), "total_approved": file.total_approved()})
+        if data['num_sentences'] != data['num_approved']:
+            list.append(data)
+         
+    logger.info(list)
+    return list
 
 def audit(action, last_editor, current_user, doc, new_target_sentence=None, curr_db=db):
     ''' This function saves an audit of the event that occurred 
@@ -94,7 +104,8 @@ class File(object):
                        u'locked': False,
                        u'priority': 0,
                        u'source_language': None,
-                       u'target_language': None}
+                       u'target_language': None,
+                       u'num_sentences': -1}
         if source is not None:
             for k,v in source.iteritems():
                 if not self.state.has_key(k):
@@ -103,6 +114,8 @@ class File(object):
 
             for k,v in source.iteritems():
                 self.state[k] = v
+            if self.state[u'num_sentences'] is -1:
+                self.state[u'num_sentences'] = self.get_total()
             self.save()
         elif oid is not None:
             record = self.db['files'].find_one({'_id':oid})
@@ -144,14 +157,18 @@ class File(object):
     def unlock(self):
         self.state[u'locked'] = False
 
-    def total_approved(self):
+    def num_approved(self):
         return self.db['translations'].find({'fileID':self._id, 'status': 'approved'}).count()
 
-    def total_reviewed(self):
+    def num_reviewed(self):
         return self.db['translations'].find({'fileID':self._id, 'status': { '$in': ['reviewed', 'approved']}}).count()
 
     def get_total(self):
         return self.db['translations'].find({'fileID':self._id}).count()
+    
+    @property
+    def num_sentences(self):
+        return self.state[u'num_sentences']
 
 class Sentence(object):
     ''' This class models a sentence.
@@ -233,6 +250,7 @@ class Sentence(object):
         prev_editor = User(oid=self.userID, curr_db=self.db)
         audit("approve", prev_editor._id, approver._id, self.state)
         self.increment_update_number()
+        self.status = 'reviewed'
         approver.increment_user_approved()
         self.add_approver(approver._id)
         prev_editor.increment_got_approved()

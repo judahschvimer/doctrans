@@ -21,6 +21,8 @@
                     {% if sentence['status'] != 'approved' %}
                             <button class="edit" id="{{sentence['sentenceID']}}-editButton">Edit</button>
                             <button class="approve" id="{{sentence['sentenceID']}}-approveButton">Approve</button>
+                            <input class="approval_check" value="&#x2713;"></input>
+                            <input class="approval_num" value="{{sentence['approvers']|list_length}}"></input>
                     {% endif %}
                 </td>
             </tr>

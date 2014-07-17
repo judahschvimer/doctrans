@@ -53,7 +53,7 @@ def edit_translation():
     except KeyError:
         return json.dumps({ "code": 401 , "msg": "Edit Failed" }), 500
     except models.MyError as e:
-        return json.dumps({ "code": int(e.code) , "msg": e.msg }), int(e.code)
+        return json.dumps({ "code": e.code , "msg": e.msg }), e.code
         
 @app.route('/approve', methods=['POST'])
 def approve_translation():

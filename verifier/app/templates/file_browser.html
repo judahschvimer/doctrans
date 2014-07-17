@@ -13,11 +13,13 @@
     <table>
         {% for file in file_list %}
             <tr>
-                <td class="source">
+                <td class="file_name">
                     {{file['file_path']}}
                 </td>
-                <td class="target" >
+                <td class="fiLe_info" >
                     <button class="editfile" id="{{file}}-editButton" onclick="location.href = '/file/{{username}}/{{language}}/{{file['file_path']|pathname2url}}';">Edit</button>
+                    Approved: <input readonly class="approval_frac" value="{{file['num_approved']}}/{{file['num_sentences']}}"></input>
+                    Reviewed: <input readonly class="review_frac" value="{{file['num_reviewed']}}/{{file['num_sentences']}}"></input>
                 </td>
             </tr>
         {% endfor %}

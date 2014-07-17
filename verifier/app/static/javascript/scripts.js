@@ -62,16 +62,17 @@ function save(){
                    },
           error: function(data, textStatus, jqxhr)
                    {
-                        toggle_message(data.responseJSON.msg, "red");
+                        toggle_message("Error: "+data.responseJSON.msg, "red");
                    }
     });
 }
 
 function approve(){
     approve_html($(this));   
-
+    var $this=$(this);
+    var s=$(this).parent().data("sentence");
     var new_content={"approver": $("#username").val()}
-    var j={"old": $(this).parent().data("sentence"), "new": new_content};
+    var j={"old": s, "new": new_content};
     $.ajax({
           type: "POST",
           contentType: "application/json; charset=utf-8",
@@ -81,10 +82,13 @@ function approve(){
           success: function(data, textStatus, jqxhr)
                    {
                         toggle_message(data.msg, "green");
+                        var new_approval_num=parseInt($this.parent().children(".approval_num").val())+1;
+                        $this.parent().children(".approval_num").val(new_approval_num);
                    },
           error: function(data, textStatus, jqxhr)
                    {
-                        toggle_message(data.responseJSON.msg, "red");
+                        toggle_message("Error: "+data.responseJSON.msg, "red");
+                        unapprove_html($this);
                    }
     });
 }
@@ -98,9 +102,10 @@ function approve_html(e){
 }
 function unapprove(){
     unapprove_html($(this))
-
+    var $this=$(this)
+    var s=$(this).parent().data("sentence");
     var new_content={"unapprover": $("#username").val()}
-    var j={"old": $(this).parent().data("sentence"), "new": new_content};
+    var j={"old": s, "new": new_content};
     $.ajax({
           type: "POST",
           contentType: "application/json; charset=utf-8",
@@ -110,10 +115,13 @@ function unapprove(){
           success: function(data, textStatus, jqxhr)
                    {
                         toggle_message(data.msg, "green");
+                        var new_approval_num=parseInt($this.parent().children(".approval_num").val())-1;
+                        $this.parent().children(".approval_num").val(new_approval_num);
                    },
           error: function(data, textStatus, jqxhr)
                    {
-                        toggle_message(data.responseJSON.msg, "red");
+                        toggle_message("Error: "+data.responseJSON.msg, "red");
+                        approve_html($this);
                    }
     });
 }  
