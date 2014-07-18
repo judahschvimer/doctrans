@@ -79,7 +79,7 @@ class TestCase(unittest.TestCase):
     A test can access the connection using the attribute `conn`.
 
     '''
-    db_init_files = ['test_files/translations.json','test_files/users.json']
+    db_init_files = ['test_files/translations.json','test_files/users.json', 'test_files/files.json']
     
     def __init__(self, *args, **kwargs):
         super(TestCase, self).__init__(*args, **kwargs)
@@ -190,12 +190,11 @@ class TestCase(unittest.TestCase):
 
     def test_sentence_approved(self):
         '''This method tests that if a sentence is approved twice it gets approved'''
-        s = self.sentence(id=u's1')
+        s = self.sentence(id=u's3')
         judah = self.user(id=u'u2')
         wisdom = self.user(id=u'u3')
         s.approve(judah) 
-        s.approve(wisdom) 
-        s = self.sentence(id=u's1')
+        s = self.sentence(id=u's3')
         self.assertEquals(s.status, 'approved')
 
     def test_approve_twice(self):
@@ -255,6 +254,15 @@ class TestCase(unittest.TestCase):
         judah = self.user(id=u'u2')
         with self.assertRaises(Exception):
             s.edit(judah, s.target_sentence) 
+
+    def test_edit_lock(self):
+        '''This method tests that you can't make an edit with a lock'''
+        s = self.sentence(id=u's1')
+        judah = self.user(id=u'u2')
+        s.edit(judah, "foo bar")
+        wisdom = self.user(id=u'u3')
+        with self.assertRaises(Exception):
+            s.edit(wisdom, s.target_sentence) 
 
 if __name__ == '__main__':
     unittest.main()

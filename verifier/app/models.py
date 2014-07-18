@@ -114,8 +114,8 @@ def find_file(source_language, target_language, file_path, curr_db=db):
         -File's OID
     '''
     record = curr_db['files'].find_one({'source_language': source_language,
-                                      'target_language': target_language,
-                                      'file_path': file_path})
+                                        'target_language': target_language,
+                                         'file_path': file_path})
     return record
 
 
@@ -127,7 +127,8 @@ class File(object):
     def __init__(self, source=None, oid=None, curr_db=db):
         self.db = curr_db
         self.state = { u'file_path': None,
-                       u'locked': False,
+                       u'lock_exp': datetime.datetime.utcnow(),
+                       u'lock_id': None,
                        u'priority': 0,
                        u'source_language': None,
                        u'target_language': None,
@@ -135,7 +136,7 @@ class File(object):
         if source is not None:
             for k,v in source.iteritems():
                 if not self.state.has_key(k):
-                    logger.debug(k)
+                    loggaer.debug(k)
                     raise KeyError
 
             if source.has_key('source_language') and source.has_key('target_language') and source.has_key('file_path'):
@@ -146,6 +147,7 @@ class File(object):
                 self.state[k] = v
             self.save()
         elif oid is not None:
+            logger.debug(oid)
             record = self.db['files'].find_one({'_id':oid})
             for k,v in record.items():
                 self.state[k] = v
@@ -172,18 +174,28 @@ class File(object):
 
     @property
     def _id(self):
-        return self.state[u'_id']    
-    
-    def is_locked(self):
-        return self.state[u'locked']
+        return self.state[u'_id']        
 
-    def lock(self):
-        if self.is_locked:
-            raise Exception
-        self.state[u'locked'] = True
-
-    def unlock(self):
-        self.state[u'locked'] = False
+    def grab_lock(self, userID):
+        '''This method tries to grab the lock on the file.
+        If it succeeds then it pushes the lock back and returns true, if it fails then it returns false
+        :Parameters:
+            - 'userID': _id of the user who is trying to grab the lock
+        :Returns:
+            - True or False if you grabbed the lock or not
+        ''' 
+        now = datetime.datetime.utcnow()
+        if self.state[u'lock_exp'] < now:
+            self.state[u'lock_exp'] = now+app.config['SESSION_LENGTH']
+            self.state[u'lock_id'] = userID
+            self.save()
+            return True
+        elif self.state[u'lock_id'] == userID:
+            self.state[u'lock_exp'] = now+app.config['SESSION_LENGTH']
+            self.save()
+            return True
+        else:
+            return False
 
     def num_approved(self):
         return self.db['translations'].find({'fileID':self._id, 'status': 'approved'}).count()
@@ -235,6 +247,10 @@ class Sentence(object):
             record = self.db['translations'].find_one({'_id':oid})
             for k,v in record.items():
                 self.state[k] = v
+    
+    def check_lock(self, userID):
+        f = File(oid=self.fileID, curr_db=self.db)
+        return f.grab_lock(userID)
 
     def edit(self, new_editor, new_target_sentence):
         '''This function edits the current sentence.
@@ -251,6 +267,11 @@ class Sentence(object):
         if self.status is 'approved':
             logger.error("can't edit approved sentence")
             raise MyError("Can't edit approved sentence", 403)
+        
+        f = File(oid=self.fileID, curr_db=self.db)
+        if f.grab_lock(new_editor._id) == False:
+            logger.error("can't edit without lock")
+            raise LockError("Can't edit without lock", f.file_path, new_editor.username, self.target_language)
 
         audit("edit", self.userID, new_editor._id, self.state, new_target_sentence)
         self.increment_update_number()
@@ -276,6 +297,11 @@ class Sentence(object):
         if approver._id in self.approvers:
             logger.error('cannot approve twice')
             raise MyError("Can't approve sentence twice", 403)
+        
+        f = File(oid=self.fileID, curr_db=self.db)
+        if f.grab_lock(approver._id) == False:
+            logger.error("can't approve without lock")
+            raise LockError("Can't approve without lock", f.file_path, approver.username, self.target_language)
             
         prev_editor = User(oid=self.userID, curr_db=self.db)
         audit("approve", prev_editor._id, approver._id, self.state)
@@ -299,6 +325,12 @@ class Sentence(object):
         if self.check_approver(unapprover._id) is False:
             logger.error("never approved sentence")
             raise MyError("Never approved sentence", 403)
+
+        f = File(oid=self.fileID, curr_db=self.db)
+        if f.grab_lock(unapprover._id) == False:
+            logger.error("can't unapprove without lock")
+            raise LockError("Can't unapprove without lock", f.file_path, unapprover.username, self.target_language)
+        
         prev_editor = User(oid=self.userID, curr_db=self.db)
         audit("unapprove", prev_editor._id, unapprover._id, self.state)
         self.increment_update_number()
@@ -506,5 +538,15 @@ class MyError(Exception):
     def __init__(self, msg, code):
         self.msg = msg
         self.code = code
+    def __str__(self):
+        return  self.msg
+
+class LockError(Exception):
+    def __init__(self, msg, file_path, username, target_language):
+        self.msg = msg
+        self.file_path = file_path
+        self.username = username
+        self.target_language = target_language
+        self.code = 423
     def __str__(self):
         return  self.msg

@@ -35,7 +35,7 @@
     "source_sentence" : "The MongoDB Manual is copyright |copy| 2011-|year| MongoDB, Inc.",
     "sentenceID" : "f5a78db275c84ffe90817818b78ba0d9",
     "userID" : "u1",
-    "approvers" : [],
+    "approvers" : ["u3"],
     "sentence_num" : 5,
     "target_sentence" : "El Manual de MongoDB Manual tiene derechos de autor &#124; copy &#124; 2011- &#124; year &#124; MongoDB , Inc .",
     "fileID" : "f1",

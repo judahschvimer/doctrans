@@ -9,8 +9,6 @@ $(document).ready(function(){
 
 });
 
-
-
 function check_approval(){
     var approvers= $(this).data('sentence').approvers;
     for(var i=0; i< approvers.length; i++){
@@ -50,6 +48,10 @@ function toggle_message(msg, color){
 
 }
 
+function lock_error(json_data){
+    window.location.replace('/file/'+json_data.username+'/'+json_data.target_language+'/'+json_data.file_path+'/423');
+}
+
 function save(){
     var new_content={"editor": $("#username").val(), "new_target_sentence": $(this).parent().children(".target_sentence").val()};
     var j={"old": $(this).parent().data("sentence"), "new": new_content};
@@ -64,7 +66,7 @@ function save(){
                         toggle_message(data.msg, "green");
                    },
           error: function(data, textStatus, jqxhr)
-                   {
+                   {  
                         toggle_message("Error: "+data.responseJSON.msg, "red");
                    }
     });
@@ -90,8 +92,13 @@ function approve(){
                    },
           error: function(data, textStatus, jqxhr)
                    {
-                        toggle_message("Error: "+data.responseJSON.msg, "red");
-                        unapprove_html($this);
+                        if(data.status == 423){
+                            lock_error(data.responseJSON);
+                        }
+                        else{
+                            toggle_message("Error: "+data.responseJSON.msg, "red");
+                            unapprove_html($this);
+                        }
                    }
     });
 }
