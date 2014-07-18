@@ -42,30 +42,41 @@ def get_languages(curr_db=db):
     logger.info(languages)
     return languages
 
-def get_file_names(source_language, target_language, curr_db=db):
-    '''This function  gets all of the file names for a given pair of languages 
+def get_fileIDs(source_language, target_language, curr_db=db):
+    '''This function  gets all of the file ids for a given pair of languages 
     :Parameters:
+        - 'db': database
+        - 'source_language': source language
+        - 'target_language': target language
+    :Returns:
+        - cursor of fileids
+    '''
+    return curr_db['files'].find({'source_language': source_language, 
+                                  'target_language': target_language},
+                                 {'_id': 1}).sort('priority',1) 
+    
+
+def get_files_for_page(page_number, num_files_per_page, fileIDs, curr_db=db):
+    '''This function gets all of the stats for a list of files 
+    :Parameters:
+        - 'page_number': current page number
         - 'db': database
         - 'source_language': source language
         - 'target_language': target language
     :Returns:
         - cursor of file names
     '''
-    file_names = curr_db['files'].find({'source_language': source_language, 
-                                        'target_language': target_language},
-                                       {'_id': 1}) 
+    page_fileIDs = fileIDs.skip(((page_number-1)*num_files_per_page) if page_number > 0 else 0).limit(num_files_per_page)
     list = []
-    for f in file_names:
+    for f in page_fileIDs:
         file = File(oid=f[u'_id'])
-        logger.debug(file.file_path)
         if file.num_sentences == 0:
             continue
-        data = {'file_path': file.file_path, 'num_sentences': file.get_total(), 'num_reviewed': file.num_reviewed(), "num_approved": file.num_approved()}
-        #list.append({'file_path': file.file_path, 'num_sentences': file.num_sentences, 'total_reviewed': file.total_reviewed(), "total_approved": file.total_approved()})
+        data = {'file_path': file.file_path, 'num_sentences': file.num_sentences, 'num_reviewed': file.num_reviewed(), "num_approved": file.num_approved()}
         if data['num_sentences'] != data['num_approved']:
             list.append(data)
          
-    logger.info(list)
+    logger.info(len(list))
     return list
 
 def audit(action, last_editor, current_user, doc, new_target_sentence=None, curr_db=db):
@@ -92,6 +103,21 @@ def audit(action, last_editor, current_user, doc, new_target_sentence=None, curr
                                           'original_document': doc, 
                                           'timestamp': datetime.datetime.utcnow() })
         
+def find_file(source_language, target_language, file_path, curr_db=db):
+    '''This function finds the oid of a file by it's languages and file_path, which should ideally be unique
+    If these aren't unique this could create issues, but if they're not unique then you probably already have a problem
+    :Parameters:
+        - 'source_language'
+        - 'target_language'
+        - 'file_path'
+    :Returns:
+        -File's OID
+    '''
+    record = curr_db['files'].find_one({'source_language': source_language,
+                                      'target_language': target_language,
+                                      'file_path': file_path})
+    return record
+
 
 class File(object):
     '''This class models a file.
@@ -112,20 +138,22 @@ class File(object):
                     logger.debug(k)
                     raise KeyError
 
-            for k,v in source.iteritems():
+            if source.has_key('source_language') and source.has_key('target_language') and source.has_key('file_path'):
+                s = find_file(source['source_language'], source['target_language'], source['file_path']) 
+                if s is not None:
+                    source = s
+            for k,v in source.items():
                 self.state[k] = v
-            if self.state[u'num_sentences'] is -1:
-                self.state[u'num_sentences'] = self.get_total()
             self.save()
         elif oid is not None:
             record = self.db['files'].find_one({'_id':oid})
-            for k,v in record.iteritems():
+            for k,v in record.items():
                 self.state[k] = v
     
     def save(self):
         logger.info(self.state)
         self.state[u'_id'] = self.db['files'].save(self.state)
- 
+
     @property
     def file_path(self):
         return self.state[u'file_path']
@@ -163,8 +191,10 @@ class File(object):
     def num_reviewed(self):
         return self.db['translations'].find({'fileID':self._id, 'status': { '$in': ['reviewed', 'approved']}}).count()
 
-    def get_total(self):
-        return self.db['translations'].find({'fileID':self._id}).count()
+    def get_num_sentences(self):
+        self.state[u'num_sentences'] = self.db['translations'].find({'fileID':self._id}).count()
+        self.save()
+        return self.num_sentences
     
     @property
     def num_sentences(self):
@@ -192,7 +222,7 @@ class Sentence(object):
 
         if source is not None:
             logger.debug(source)
-            for k,v in source.iteritems():
+            for k,v in source.items():
                 if not self.state.has_key(k):
                     logger.debug(k)
                     raise KeyError
@@ -203,7 +233,7 @@ class Sentence(object):
         elif oid is not None:
             logger.debug(oid)
             record = self.db['translations'].find_one({'_id':oid})
-            for k,v in record.iteritems():
+            for k,v in record.items():
                 self.state[k] = v
 
     def edit(self, new_editor, new_target_sentence):
@@ -408,11 +438,11 @@ class User(object):
             self.save()
         elif oid is not None:
             record = self.db['users'].find_one({'_id':oid})
-            for k,v in record.iteritems():
+            for k,v in record.items():
                 self.state[k] = v
         elif username is not None:
             record = self.db['users'].find_one({'username':username})
-            for k,v in record.iteritems():
+            for k,v in record.items():
                 self.state[k] = v
          
     def save(self): 

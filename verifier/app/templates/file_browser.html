@@ -1,30 +1,42 @@
+{% import 'pagination.html' as pagination_macro %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <title>Translation Pipeline</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}"></link>
-    <script type=text/javascript src="{{url_for('static', filename='javascript/jquery.min.js') }}"></script>
-    <script type="text/javascript" src="{{url_for('static',filename='javascript/scripts.js')}}"></script>
-</head>
+    <script type="text/javascript" src="{{url_for('static', filename='javascript/jquery.min.js') }}"></script>
+    <script type="text/javascript" src="{{url_for('static', filename='javascript/scripts.js')}}"></script>
+    <script type="text/javascript" src="{{url_for('static', filename='javascript/sorttable.js')}}"></script>
+</head>/
 <body>
     <ul id="navigation">
     Username: <input id="username" value="{{username}}" readonly></input>
     Target Language: <input id="language" value="{{language}}" readonly></input>
-    <table>
+    <table class="sortable">
+        <thead><tr>
+            <th>File Name</th>
+            <th>Fraction Approved</th>
+            <th>Fraction Reviewed</th>
+            <th></th>
+        </tr></thead>
         {% for file in file_list %}
             <tr>
                 <td class="file_name">
                     {{file['file_path']}}
                 </td>
-                <td class="fiLe_info" >
-                    <button class="editfile" id="{{file}}-editButton" onclick="location.href = '/file/{{username}}/{{language}}/{{file['file_path']|pathname2url}}';">Edit</button>
+                <td sorttable_customkey={{file['num_approved']/file['num_sentences']}} class="approved_stat">
                     Approved: <input readonly class="approval_frac" value="{{file['num_approved']}}/{{file['num_sentences']}}"></input>
+                </td>
+                <td sorttable_customkey={{file['num_reviewed']/file['num_sentences']}} class="reviewed_stat">
                     Reviewed: <input readonly class="review_frac" value="{{file['num_reviewed']}}/{{file['num_sentences']}}"></input>
+                </td>
+                <td class="editfile_button" >
+                    <button class="editfile" id="{{file}}-editButton" onclick="location.href = '/file/{{username}}/{{language}}/{{file['file_path']|pathname2url}}';">Edit</button>
                 </td>
             </tr>
         {% endfor %}
     </table>
     </ul>
-
+    {{pagination_macro.render_pagination(pagination)}}
 </body>
 </html>

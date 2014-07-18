@@ -6,7 +6,10 @@ $(document).ready(function(){
     
     $(".target").each(check_approval);   
     $(".target").each(check_editor);   
+
 });
+
+
 
 function check_approval(){
     var approvers= $(this).data('sentence').approvers;

@@ -8,9 +8,24 @@ td.source, td.file_name {
     padding: 5px;
 }
 
-td.target, td.file_info {
+td.target{
     padding: 5px;
     width: 45%;
+}
+
+td.editfile_button{
+    padding: 5px;
+    width: 25%;
+}
+
+td.approved_stat{
+    padding: 5px;
+    width: 15%;
+}
+
+td.reviewed_stat{
+    padding: 5px;
+    width: 15%;
 }
 
 textarea {
@@ -65,4 +80,15 @@ input.approval_frac, input.review_frac{
     width: 40px;
     color: blue;
     border: 0;
+}
+
+table.sortable thead {
+    background-color:#eee;
+    color:#666666;
+    font-weight: bold;
+    cursor: default;
+}
+
+div.pagination {
+    text-align: center;
 }

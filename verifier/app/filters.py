@@ -3,6 +3,7 @@ import json
 from bson import json_util
 import urllib
 import models
+from flask import request, url_for
 
 def to_json(value):
     ''' This filter converts value to json
@@ -62,9 +63,15 @@ def list_length(list):
     '''
     return len(list)
 
+def url_for_other_page(page):
+    args = request.view_args.copy()
+    args['page'] = page
+    return url_for(request.endpoint, **args)
+
 app.jinja_env.filters['to_json'] = to_json
 app.jinja_env.filters['pathname2url'] = pathname2url
 app.jinja_env.filters['check_if_user_approved'] = check_if_user_approved
 app.jinja_env.filters['check_if_user_edited'] = check_if_user_edited
 app.jinja_env.filters['get_userID'] = get_userID
 app.jinja_env.filters['list_length'] = list_length
+app.jinja_env.globals['url_for_other_page'] = url_for_other_page

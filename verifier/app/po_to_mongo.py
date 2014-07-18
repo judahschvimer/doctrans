@@ -47,6 +47,7 @@ def write_mongo(po_fn, userID, status, language, po_root):
         logger.info(t.state)
         t.save()
         i += 1
+    f.get_num_sentences()
 
 def extract_entries(db, path, username, status, language):
     '''go through directories and write the po file to mongo 
