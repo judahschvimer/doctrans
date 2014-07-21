@@ -1,4 +1,3 @@
-# Set the path
 import os, sys
 from flask.ext.script import Manager, Server
 from app import flask_app

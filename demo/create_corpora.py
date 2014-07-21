@@ -16,7 +16,7 @@ Usage: python create_corpora.py config_corpora.yaml
 logger = logging.getLogger('create_corpora')
 logging.basicConfig(level=logging.DEBUG)
 
-def process_config(fn):
+def process_config(file_name):
     '''This function takes a configuration file cand creates a dictionary of the useful information.
     It also sets defaults for certain arguments so they do not need to be specified by the user for it to work
     :Parameters:
@@ -25,23 +25,23 @@ def process_config(fn):
         - a dictionary of the configuration
     '''
 
-    with open(fn, 'r') as c:
-        y=yaml.load(c)
+    with open(file_name, 'r') as c:
+        y = yaml.load(c)
     
     #create dictionary of file info for easy reference    
-    d=dict()
-    d['name']=y['name']
-    d['foreign_language']=y['foreign_language']
-    d['corpus_language']=y['corpus_language']
-    d['sources']=dict()
-    for f in y['sources']:
-        d['sources'][f['file_name']]=dict([('file_path',f['file_path']),('percent_train',f['percent_train']),('percent_tune',f['percent_tune']),('percent_test',f['percent_test']), ('end',0) ])
-        d['sources'][f['file_name']].setdefault('percent_of_train',0)
-        d['sources'][f['file_name']].setdefault('percent_of_tune',0)
-        d['sources'][f['file_name']].setdefault('percent_of_test',0)
+    d = dict()
+    d['name'] = y['name']
+    d['foreign_language'] = y['foreign_language']
+    d['corpus_language'] = y['corpus_language']
+    d['sources'] = dict()
+    for source in y['sources']:
+        d['sources'][source['file_name']] = dict([('file_path',source['file_path']),('percent_train',source['percent_train']),('percent_tune',source['percent_tune']),('percent_test',source['percent_test']), ('end',0) ])
+        d['sources'][source['file_name']].setdefault('percent_of_train',0)
+        d['sources'][source['file_name']].setdefault('percent_of_tune',0)
+        d['sources'][source['file_name']].setdefault('percent_of_test',0)
     for t in ['train','tune','test']:
         for f in y['source_contributions'][t]:
-            d['sources'][f['file_name']]['percent_of_'+t]=f['percent_of_corpus'] 
+            d['sources'][f['file_name']]['percent_of_'+t] = f['percent_of_corpus'] 
     return d
 
 
@@ -52,14 +52,14 @@ def verify_percs(d):
     :Returns:
         True if they're verified, false if there's a problem
     '''
-    for fn,s in d['sources'].iteritems():
-        if s['percent_train'] + s['percent_tune'] + s['percent_test'] != 100:
+    for file_name,source in d['sources'].iteritems():
+        if source['percent_train'] + source['percent_tune'] + ssource['percent_test'] != 100:
              logger.error("Percentages don't add up to 100")
              return False
-        elif s['percent_train'] < 0 or s['percent_tune'] < 0 or s['percent_test'] < 0:
+        elif ources['percent_train'] < 0 or source['percent_tune'] < 0 or source['percent_test'] < 0:
             logger.error("percentage is below 0")
             return False
-        elif s['percent_train'] > 100 or s['percent_tune'] > 100 or s['percent_test'] > 100:
+        elif source['percent_train'] > 100 or source['percent_tune'] > 100 or source['percent_test'] > 100:
             logger.error("percentage is above 100")
             return False
         
@@ -107,9 +107,9 @@ def get_file_lengths(d):
     :Parameters:
         - 'd': configuration dictionary
     '''
-    for fn,s in d['sources'].iteritems():
-        with open(s['file_path'], 'r') as f:
-            s['length'] = len(f.readlines())
+    for file_name,source in d['sources'].iteritems():
+        with open(source['file_path'], 'r') as file:
+            source['length'] = len(file.readlines())
 
 def get_total_length(d, corpus_type):
     '''This function finds the ideal total length of the corpus
@@ -122,9 +122,9 @@ def get_total_length(d, corpus_type):
     '''
     tot_length=0
     i=0
-    for fn,s in d['sources'].iteritems():
-        if s['percent_of_'+corpus_type] > 0 and s['length'] * 100 / s['percent_of_'+corpus_type] > tot_length:
-            tot_length = s['length'] * 100 / s['percent_of_'+corpus_type]
+    for file_name,source in d['sources'].iteritems():
+        if source['percent_of_'+corpus_type] > 0 and source['length'] * 100 / source['percent_of_'+corpus_type] > tot_length:
+            tot_length = source['length'] * 100 / source['percent_of_'+corpus_type]
         i += 1
     return tot_length
  
@@ -145,20 +145,20 @@ def create_corpora(config):
     
  
     #append files appropriately
-    for t in ['train', 'tune', 'test']:
-        outfile = "{0}/{1}.en-{2}.{3}".format(d['name'], t ,d['foreign_language'] ,d['corpus_language'])
+    for corpus_type in ['train', 'tune', 'test']:
+        outfile = "{0}/{1}.en-{2}.{3}".format(d['name'], corpus_type ,d['foreign_language'] ,d['corpus_language'])
         open(outfile,'w').close()
         # finds the total length of the entire corpus
-        tot_length = get_total_length(d, t)   
+        tot_length = get_total_length(d, corpus_type)   
         i = 0
-        for fn,s in d['sources'].iteritems():
+        for fn,source in d['sources'].iteritems():
             #finds how many copies of this file will make it the correct percentage of the full corpus
-            s['num_copies'] = tot_length * s['percent_of_'+t] / 100 / s['length']
+            source['num_copies'] = tot_length * source['percent_of_'+corpus_type] / 100 / source['length']
             final = False
-            if t is 'test': 
+            if corpus_type is 'test': 
                 final = True
             #appends the section of the file to the corpus
-            s['end'] = append_corpus(s['percent_'+t], s['num_copies'], outfile, s['file_path'], s['end'], final)
+            source['end'] = append_corpus(source['percent_'+corpus_type], source['num_copies'], outfile, source['file_path'], source['end'], final)
             i += 1
             
 
@@ -169,8 +169,8 @@ def main():
 
     config = sys.argv[1]
     if not os.path.exists(config):
-            print(config +" could not be opened")
-            exit(1)
+        print(config +" could not be opened")
+        exit(1)
 
     create_corpora(config)
     
