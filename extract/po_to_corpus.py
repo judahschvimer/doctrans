@@ -18,7 +18,7 @@ def write_po_file(source_doc, target_doc, po_file_name):
         - 'target_doc': doc to put target language text in 
         - 'po_file_name': po file to take text from 
     '''
-    logger.info("processing {0}".format(po_file_name))
+    logger.info("processing "+po_file_name)
     po = polib.pofile(po_file_name)
     for entry in po.translated_entries():
         print >> source_doc, entry.msgid.encode('utf-8')
@@ -33,11 +33,11 @@ def extract_translated_entries(po_path, source_doc_fn, target_doc_fn):
     '''
 
     if os.path.exists(po_path) is False:
-        logger.error("{0} doesn't exist".format(po_path))
+        logger.error(po_path+" doesn't exist")
         return
 
     # path is a directory now
-    logger.info("walking directory {0}".format(path))
+    logger.info("walking directory "+po_path)
 
     with open(source_doc_fn, "w") as source_doc:
         with open(target_doc_fn, "w") as target_doc:

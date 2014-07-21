@@ -20,6 +20,30 @@ Recommended Usage: nohup nice -n 17 python build_model.py config_train.yaml 2>&1
 '''
 
 
+class Timer():
+    def __init__(self, d, name=None):
+        self.d = d
+        if name is None:
+            self.name = 'task'
+        else:
+            self.name = name
+
+    def __enter__(self):
+        self.start = time.time()
+        time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+        self.d[self.name+"_start_time"] = time_now 
+        message = '[build] [timer]: {0} started at {1}'
+        message = message.format(self.name, time_now)
+        logger.info(message)
+
+    def __exit__(self, *args):
+        total_time = time.time()-self.start
+        message = '[build] [timer]: time elapsed for {0} was: {1}'
+        message = message.format(self.name, str(total_time))
+        logger.info(message)
+        self.d[self.name+"_time"] = total_time
+        self.d[self.name+"_time_hms"] = str(datetime.timedelta(seconds=total_time))
+
 class CGLogger(logging.Logger):
     '''This class is responsible for making sure logging works with multiprocessing
     Essentially it starts a stream handler and allows you to switch it out for other handlers
@@ -91,7 +115,7 @@ def tokenize_corpus(corpus_dir, corpus_name,y):
     
     cmd = "{0}/scripts/tokenizer/tokenizer.perl -l en < {1}/{3}.{4} > {2}/{3}.tok.{4} -threads {5}"
     pcommand(cmd.format(y.paths.moses, corpus_dir, y.paths.aux_corpus_files, corpus_name, "en", y.settings.threads))
-    pcommand(cmd.format(y.paths.moses, corpus_dir, y.paths.aux_corpus_files, corpus_name, y.foreign, y.settings.threads))
+    pcommand(cmd.format(y.paths.moses, corpus_dir, y.paths.aux_corpus_files, corpus_name, y.settings.foreign, y.settings.threads))
 
 def train_truecaser(corpus_name,y):
     '''This function trains the truecaser on a corpus
@@ -162,21 +186,16 @@ def run_lm(lm_path,
     ''' 
 
     # Create language model
-    lm_start = time.time()
-    d["lm_start_time"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-    logger.info("lm_start_time: "+d["lm_start_time"])
-    os.makedirs(lm_path)
-    pcommand("{0}/bin/add-start-end.sh < {1}/{2}.true.{3} > {4}/{2}.sb.{3}".format(y.paths.irstlm, y.paths.aux_corpus_files, y.train.name, y.foreign, lm_path))
-    pcommand("{0}/bin/build-lm.sh -i {5}/{1}.sb.{4} -t {5}/tmp -p -n {2} -s {3} -o {5}/{1}.ilm.{4}.gz".format(y.paths.irstlm, y.train.name, l_order, l_smoothing, y.settings.foreign, lm_path))
-    pcommand("{0}/bin/compile-lm --text  {3}/{1}.ilm.{2}.gz {3}/{1}.arpa.{2}".format(y.paths.irstlm,y.train.name, y.settings.foreign, lm_path))
-    pcommand("{0}/bin/build_binary -i {3}/{1}.arpa.es {3}/{1}.blm.{2}".format(y.paths.moses,y.train.name, y.settings.foreign, lm_path))
-    pcommand("echo 'Is this a Spanish sentance?' | {0}/bin/query {1}/{2}.blm.{3}".format(y.paths.moses, lm_path, y.train.name, y.settings.foreign))
-    lm_time = time.time()-lm_start
-    d["lm_time"] = lm_time
-    d["lm_time_hms"] = str(datetime.timedelta(seconds=lm_time))
-    logger.info("lm_time: "+d["lm_time_hms"])
+    with Timer(d, 'lm'):
+        os.makedirs(lm_path)
+        pcommand("{0}/bin/add-start-end.sh < {1}/{2}.true.{3} > {4}/{2}.sb.{3}".format(y.paths.irstlm, y.paths.aux_corpus_files, y.train.name, y.settings.foreign, lm_path))
+        pcommand("{0}/bin/build-lm.sh -i {5}/{1}.sb.{4} -t {5}/tmp -p -n {2} -s {3} -o {5}/{1}.ilm.{4}.gz".format(y.paths.irstlm, y.train.name, l_order, l_smoothing, y.settings.foreign, lm_path))
+        pcommand("{0}/bin/compile-lm --text  {3}/{1}.ilm.{2}.gz {3}/{1}.arpa.{2}".format(y.paths.irstlm, y.train.name, y.settings.foreign, lm_path))
+        pcommand("{0}/bin/build_binary -i {3}/{1}.arpa.es {3}/{1}.blm.{2}".format(y.paths.moses,y.train.name, y.settings.foreign, lm_path))
+        pcommand("echo 'Is this a Spanish sentance?' | {0}/bin/query {1}/{2}.blm.{3}".format(y.paths.moses, lm_path, y.train.name, y.settings.foreign))
     
 def run_train(working_path,
+              lm_path,
               l_len,
               l_order,
               l_lang, 
@@ -202,15 +221,9 @@ def run_train(working_path,
         
     ''' 
     
-    train_start = time.time()
-    d["train_start_time"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-    logger.info("train_start_time: "+d["train_start_time"])
-    os.makedirs(working_path)
-    pcommand("{0}/scripts/training/train-model.perl -root-dir {13}/train -corpus {1}/{2}.clean -f en -e {3} --score-options \'{4}\' -alignment {5} -reordering {6}-{7}-{8}-{9} -lm 0:{10}:{11}/{2}.blm.{3}:1 -mgiza -mgiza-cpus {12} -external-bin-dir {0}/tools -cores {12} --parallel --parts 3 2>&1 > {13}/training.out".format(y.paths.moses, y.paths.aux_corpus_files, y.train.name, y.settings.foreign, l_score, l_align, l_model, l_orient, l_direct, l_lang, l_order, lm_path, y.settings.threads, working_path))
-    train_time = time.time()-train_start
-    d["train_time"] = train_time
-    d["train_time_hms"] = str(datetime.timedelta(seconds=train_time))
-    logger.info("train_time:"+d["train_time_hms"])
+    with Timer(d, 'train'):
+        os.makedirs(working_path)
+        pcommand("{0}/scripts/training/train-model.perl -root-dir {13}/train -corpus {1}/{2}.clean -f en -e {3} --score-options \'{4}\' -alignment {5} -reordering {6}-{7}-{8}-{9} -lm 0:{10}:{11}/{2}.blm.{3}:1 -mgiza -mgiza-cpus {12} -external-bin-dir {0}/tools -cores {12} --parallel --parts 3 2>&1 > {13}/training.out".format(y.paths.moses, y.paths.aux_corpus_files, y.train.name, y.settings.foreign, l_score, l_align, l_model, l_orient, l_direct, l_lang, l_order, lm_path, y.settings.threads, working_path))
 
 def run_binarise(working_path, 
                  l_lang, 
@@ -231,13 +244,13 @@ def run_binarise(working_path,
         - 'd': output dictionary
         
     ''' 
-    
-    pcommand("mkdir -p {0}/binarised-model".format(working_path),c_log)
-    pcommand("{0}/bin/processPhraseTable  -ttable 0 0 {1}/train/model/{2}.gz -nscores 5 -out {1}/binarised-model/phrase-table".format(y.paths.moses,working_path,y.settings.phrase_table_name))
-    pcommand("{0}/bin/processLexicalTable -in {1}/train/model/{6}.{2}-{3}-{4}-{5}.gz -out {1}/binarised-model/reordering-table".format(y.paths.moses,working_path,l_model, l_orient,l_direct,l_lang, y.settings.reordering_name))
-    pcommand("cp {0}/mert-work/moses.ini {0}/binarised-model".format(working_path))
-    pcommand("sed -i 's/PhraseDictionaryMemory/PhraseDictionaryBinary/' {0}/binarised-model/moses.ini".format(working_path))
-    pcommand("sed -i 's/train\/model\/{1}.gz/binarised-model\/phrase-table/' {0}/binarised-model/moses.ini".format(working_path, y.settings.phrase_table_name))
+    with Timer(d, 'binarise'):
+        pcommand("mkdir -p {0}/binarised-model".format(working_path),c_log)
+        pcommand("{0}/bin/processPhraseTable  -ttable 0 0 {1}/train/model/{2}.gz -nscores 5 -out {1}/binarised-model/phrase-table".format(y.paths.moses, working_path, y.settings.phrase_table_name))
+        pcommand("{0}/bin/processLexicalTable -in {1}/train/model/{6}.{2}-{3}-{4}-{5}.gz -out {1}/binarised-model/reordering-table".format(y.paths.moses, working_path, l_model, l_orient, l_direct, l_lang, y.settings.reordering_name))
+        pcommand("cp {0}/mert-work/moses.ini {0}/binarised-model".format(working_path))
+        pcommand("sed -i 's/PhraseDictionaryMemory/PhraseDictionaryBinary/' {0}/binarised-model/moses.ini".format(working_path))
+        pcommand("sed -i 's/train\/model\/{1}.gz/binarised-model\/phrase-table/' {0}/binarised-model/moses.ini".format(working_path, y.settings.phrase_table_name))
 
 
 def run_test_filtered(working_path, 
@@ -252,21 +265,12 @@ def run_test_filtered(working_path,
         - 'd': output dictionary
         
     ''' 
-    
-    test_start = time.time()
-    d["test_start_time"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-    logger.info("test_start_time: "+d["test_start_time"])
-    pcommand("{0}/scripts/training/filter-model-given-input.pl {3}/filtered {3}/mert-work/moses.ini {2}/{1}.true.en -Binarizer {0}/bin/processPhraseTable".format(y.paths.moses, y.test.name, y.paths.aux_corpus_files, working_path))
-    pcommand("{0}/bin/moses -f {1}/filtered/moses.ini  < {2}/{3}.true.en > {1}/{3}.translated.{4} 2> {1}/{3}.out".format(y.paths.moses, working_path, y.paths.aux_corpus_files, y.test.name, y.settings.foreign))
-    c = pcommand("{0}/scripts/generic/multi-bleu.perl -lc {1}/{2}.true.{4} < {3}/{2}.translated.{4}".format(y.paths.moses, y.paths.aux_corpus_files, y.test.name, working_path, y.settings.foreign))
-    d["BLEU": c.out]
-    logger.info(c.out)
-    test_time = time.time()-test_start
-    d["test_time"] = test_time
-    d["test_time_hms"] = str(datetime.timedelta(seconds=test_time))
-    logger.info("test_time: "+d["test_time_hms"])
-
-
+    with Timer(d, 'test'):
+        pcommand("{0}/scripts/training/filter-model-given-input.pl {3}/filtered {3}/mert-work/moses.ini {2}/{1}.true.en -Binarizer {0}/bin/processPhraseTable".format(y.paths.moses, y.test.name, y.paths.aux_corpus_files, working_path))
+        pcommand("{0}/bin/moses -f {1}/filtered/moses.ini  < {2}/{3}.true.en > {1}/{3}.translated.{4} 2> {1}/{3}.out".format(y.paths.moses, working_path, y.paths.aux_corpus_files, y.test.name, y.settings.foreign))
+        c = pcommand("{0}/scripts/generic/multi-bleu.perl -lc {1}/{2}.true.{4} < {3}/{2}.translated.{4}".format(y.paths.moses, y.paths.aux_corpus_files, y.test.name, working_path, y.settings.foreign))
+        d["BLEU": c.out]
+        logger.info(c.out)
 
 def run_test_binarised(working_path, 
                        y,
@@ -278,18 +282,11 @@ def run_test_binarised(working_path,
         - 'd': output dictionary
         
     ''' 
-    
-    test_start = time.time()
-    d["test_start_time"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-    logger.info("test_start_time: "+d["test_start_time"])
-    pcommand("{0}/bin/moses -f {1}/binarised-model/moses.ini  < {2}/{3}.true.en > {1}/{3}.translated.{4} 2> {1}/{3}.out".format(y.paths.moses, working_path, y.paths.aux_corpus_files, y.test.name, y.settings.foreign))
-    c = pcommand("{0}/scripts/generic/multi-bleu.perl -lc {1}/{2}.true.{4} < {3}/{2}.translated.{4}".format(y.paths.moses, y.paths.aux_corpus_files, y.test.name, working_path, y.settings.foreign))
-    d["BLEU": c.out]
-    logger.info(c.out)
-    test_time = time.time()-test_start
-    d["test_time"] = test_time
-    d["test_time_hms"] = str(datetime.timedelta(seconds=test_time))
-    logger.info("test_time: "+d["test_time_hms"])
+    with Timer(d, 'test'):
+        pcommand("{0}/bin/moses -f {1}/binarised-model/moses.ini  < {2}/{3}.true.en > {1}/{3}.translated.{4} 2> {1}/{3}.out".format(y.paths.moses, working_path, y.paths.aux_corpus_files, y.test.name, y.settings.foreign))
+        c = pcommand("{0}/scripts/generic/multi-bleu.perl -lc {1}/{2}.true.{4} < {3}/{2}.translated.{4}".format(y.paths.moses, y.paths.aux_corpus_files, y.test.name, working_path, y.settings.foreign))
+        d["BLEU": c.out]
+        logger.info(c.out)
 
 def run_config(l_len, 
                l_order, 
@@ -331,7 +328,7 @@ def run_config(l_len,
          "start_time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
          "order": l_order,
          "smoothing": l_smoothing,
-         "scoreOptions": l_score,
+         "score_options": l_score,
          "alignment": l_align,
          "reordering_modeltype": l_model,
          "reordering_orientation": l_orient,
@@ -340,7 +337,7 @@ def run_config(l_len,
          "max_phrase_length": l_len}
 
     run_lm(lm_path, l_order, l_smoothing, y, d)
-    run_train(working_path, l_len, l_order, l_lang, l_direct, l_score, l_align, l_orient, l_model, y, d)
+    run_train(working_path, lm_path, l_len, l_order, l_lang, l_direct, l_score, l_align, l_orient, l_model, y, d)
     run_binarise(working_path, l_lang, l_direct, l_orient, l_model, y, d)
     run_test_binarised(working_path, y, d)
 
@@ -368,7 +365,8 @@ def get_run_args(y):
                                 y.parameters.order, 
                                 y.parameters.reordering_language, 
                                 y.parameters.reordering_directionality, 
-                                y.parameters.core_options, y.smoothing, 
+                                y.parameters.score_options,
+                                y.parameters.smoothing, 
                                 y.parameters.alignment, 
                                 y.parameters.reordering_orientation, 
                                 y.parameters.reordering_modeltype)

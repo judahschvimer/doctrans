@@ -8,9 +8,9 @@
     - `create_corpora.py`: creates train, tune, and test corpora given a config file
     - `datamine.py`: goes through log of experiemnts and creates a csv file with the config and results
     - `merge_trans.py`: merges as many files as you want into one file alternating lines from each, good for comparing translations
-    - `translate_docs.py`: translates a document with the moses decoder
+    - `translate_docs.py`: translates a document with the moses decoder. Supply a protected.re file to not tokenize some regular expressions.
     - `translate_po.py`: translates a po file or directory of po files
-    - `protected.re`: This file lists a set of regex's that the tokenizer will not tokenize. URLs and paths are good things to put in here.
+    - `protected.re`: This file lists a set of regex's that the tokenizer will not tokenize. URLs and paths are good things to put in here. The regex `<*.>` (and any that replace < with another character(s)) will protect anything that is found between two angle brackets. This doesn't need to be used when running tests on your model, just when actually translating documents.
   - Old (deprecated, but still available):
     - `build_model.sh`: fully builds a model
     - `setup_corpus.sh`: sets up the corpora

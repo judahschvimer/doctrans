@@ -53,10 +53,10 @@ def verify_percs(d):
         True if they're verified, false if there's a problem
     '''
     for file_name,source in d['sources'].iteritems():
-        if source['percent_train'] + source['percent_tune'] + ssource['percent_test'] != 100:
+        if source['percent_train'] + source['percent_tune'] + source['percent_test'] != 100:
              logger.error("Percentages don't add up to 100")
              return False
-        elif ources['percent_train'] < 0 or source['percent_tune'] < 0 or source['percent_test'] < 0:
+        elif source['percent_train'] < 0 or source['percent_tune'] < 0 or source['percent_test'] < 0:
             logger.error("percentage is below 0")
             return False
         elif source['percent_train'] > 100 or source['percent_tune'] > 100 or source['percent_test'] > 100:
