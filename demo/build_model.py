@@ -4,7 +4,6 @@ import time
 import itertools
 import datetime
 import multiprocessing
-import yaml
 import structures
 import datamine
 import logging
@@ -39,7 +38,7 @@ class Timer():
     def __exit__(self, *args):
         total_time = time.time()-self.start
         message = '[build] [timer]: time elapsed for {0} was: {1}'
-        message = message.format(self.name, str(total_time))
+        message = message.format(self.name, str(datetime.timedelta(seconds=total_time)))
         logger.info(message)
         self.d[self.name+"_time"] = total_time
         self.d[self.name+"_time_hms"] = str(datetime.timedelta(seconds=total_time))
@@ -76,7 +75,7 @@ class CGLogger(logging.Logger):
 
     def switch_to_main_logging(self):
         self.stop_logging_to_file()
-        self.restart_main_logging(fn)
+        self.restart_main_logging()
 
 logging.basicConfig(level=logging.INFO)
 logging.setLoggerClass(CGLogger)
@@ -96,14 +95,6 @@ def pcommand(c):
     if len(o.out) != 0: logger.info(o.out)
     if len(o.err) != 0: logger.info(o.err)
     return o
-
-#def log(curr_file, message):
-    '''This function logs a message to the logger, the global log file, and the local log file
-    :Parameters:
-        - 'curr_file': a local log file for each configuration
-        - 'message': the message to log 
-    '''
-    #curr_file.write(message+"\n")
 
 def tokenize_corpus(corpus_dir, corpus_name,y):
     '''This function tokenizes a corpus
@@ -224,6 +215,19 @@ def run_train(working_path,
     with Timer(d, 'train'):
         os.makedirs(working_path)
         pcommand("{0}/scripts/training/train-model.perl -root-dir {13}/train -corpus {1}/{2}.clean -f en -e {3} --score-options \'{4}\' -alignment {5} -reordering {6}-{7}-{8}-{9} -lm 0:{10}:{11}/{2}.blm.{3}:1 -mgiza -mgiza-cpus {12} -external-bin-dir {0}/tools -cores {12} --parallel --parts 3 2>&1 > {13}/training.out".format(y.paths.moses, y.paths.aux_corpus_files, y.train.name, y.settings.foreign, l_score, l_align, l_model, l_orient, l_direct, l_lang, l_order, lm_path, y.settings.threads, working_path))
+    
+def run_tune(working_path,
+             y,
+             d):
+    '''This function tunes the model made so far.
+    :Parameters:
+        - 'working_path': path to working directory
+        - 'y': yaml configuration dictionary
+        - 'd': output dictionary
+        
+    ''' 
+    with Timer(d, 'tune'):
+        pcommand("{0}/scripts/training/mert-moses.pl {1}/{2}.true.en {1}/{2}.true.{3} {0}/bin/moses  {4}/train/model/moses.ini --working-dir {4}/mert-work --mertdir {0}/bin/ 2>&1 > {4}/mert.out".format(y.paths.moses, y.paths.aux_corpus_files, y.tune.name, y.settings.foreign, working_path))
 
 def run_binarise(working_path, 
                  l_lang, 
@@ -245,7 +249,7 @@ def run_binarise(working_path,
         
     ''' 
     with Timer(d, 'binarise'):
-        pcommand("mkdir -p {0}/binarised-model".format(working_path),c_log)
+        pcommand("mkdir -p {0}/binarised-model".format(working_path))
         pcommand("{0}/bin/processPhraseTable  -ttable 0 0 {1}/train/model/{2}.gz -nscores 5 -out {1}/binarised-model/phrase-table".format(y.paths.moses, working_path, y.settings.phrase_table_name))
         pcommand("{0}/bin/processLexicalTable -in {1}/train/model/{6}.{2}-{3}-{4}-{5}.gz -out {1}/binarised-model/reordering-table".format(y.paths.moses, working_path, l_model, l_orient, l_direct, l_lang, y.settings.reordering_name))
         pcommand("cp {0}/mert-work/moses.ini {0}/binarised-model".format(working_path))
@@ -260,7 +264,7 @@ def run_test_filtered(working_path,
     It first filters the data to only use those needed for the test file.
     This can speed it  up over the binarised version but has a history of failing on certain corpora
     :Parameters:
-        - 'd': output dictionary
+        - 'working_path': path to working directory
         - 'y': yaml configuration dictionary
         - 'd': output dictionary
         
@@ -271,6 +275,8 @@ def run_test_filtered(working_path,
         c = pcommand("{0}/scripts/generic/multi-bleu.perl -lc {1}/{2}.true.{4} < {3}/{2}.translated.{4}".format(y.paths.moses, y.paths.aux_corpus_files, y.test.name, working_path, y.settings.foreign))
         d["BLEU": c.out]
         logger.info(c.out)
+
+
 
 def run_test_binarised(working_path, 
                        y,
@@ -338,13 +344,17 @@ def run_config(l_len,
 
     run_lm(lm_path, l_order, l_smoothing, y, d)
     run_train(working_path, lm_path, l_len, l_order, l_lang, l_direct, l_score, l_align, l_orient, l_model, y, d)
+    run_tune(working_path, y, d)
     run_binarise(working_path, l_lang, l_direct, l_orient, l_model, y, d)
     run_test_binarised(working_path, y, d)
 
+    logger.debug("test done")
     d["run_time_hms"] = str(datetime.timedelta(seconds=(time.time()-run_start)))
+    logger.debug("mid end")
     d["end_time"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-    
+    logger.debug("end") 
     with open("{0}/{1}/{1}.json".format(y.paths.project,i),"w",1) as ilog:
+        logger.debug("write file")
         ilog.write(d)    
 
 def run_star(args):
@@ -389,15 +399,15 @@ def main():
     shutil.copy(sys.argv[1], y.paths.project)
     os.environ['IRSTLM'] = y.paths.irstlm
     
-    #setup_train(y)
-    #setup_tune(y)
-    #setup_test(y)
+    setup_train(y)
+    setup_tune(y)
+    setup_test(y)
     
     pool = multiprocessing.Pool(processes=y.settings.pool_size)
     pool_outputs = pool.map(run_star, config)
     pool.close()
     pool.join()
-
+    logger.debug("all threads done")
     datamine.write_data(y.paths.project)
     command('cat {0}/data.csv | mail -s "Output" {1}'.format(y.paths.project, y.settings.email))
     

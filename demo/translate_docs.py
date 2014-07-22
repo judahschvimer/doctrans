@@ -1,7 +1,5 @@
 import sys
-import shutil
 import structures
-import os
 from  bash_command import command
 import logging
 

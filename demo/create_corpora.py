@@ -1,7 +1,6 @@
 from __future__ import division
 import sys
 import os
-import math
 import yaml
 import logging
 

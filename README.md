@@ -3,25 +3,13 @@
 ### Modules
 
 - demo: bash scripts  used for training, tuning, and running the translator
-  - Up to date
-    - `build_model.py`: builds a tranlsation model given a config file
-    - `create_corpora.py`: creates train, tune, and test corpora given a config file
-    - `datamine.py`: goes through log of experiemnts and creates a csv file with the config and results
-    - `merge_trans.py`: merges as many files as you want into one file alternating lines from each, good for comparing translations
-    - `translate_docs.py`: translates a document with the moses decoder. Supply a protected.re file to not tokenize some regular expressions.
-    - `translate_po.py`: translates a po file or directory of po files
-    - `protected.re`: This file lists a set of regex's that the tokenizer will not tokenize. URLs and paths are good things to put in here. The regex `<*.>` (and any that replace < with another character(s)) will protect anything that is found between two angle brackets. This doesn't need to be used when running tests on your model, just when actually translating documents.
-  - Old (deprecated, but still available):
-    - `build_model.sh`: fully builds a model
-    - `setup_corpus.sh`: sets up the corpora
-    - `train.sh`: trains the model on the corpus in your home directory
-    - `tune.sh`: tunes the model on the corpus in your home directory
-    - `runTuned.sh`: binarizes the files and runs the decoder if the model has been tuned
-    - `runUntuned.sh`: binarizes the files and runs the decoder if the model has not been tuned
-    - `eval.sh`: tests a translation model
-    - `translate.sh`: translates a file with the moses decoder
-    - `translate_docs_m.py`: attempts to use the moses python interface to translate docs. The interface is not complete enough to work yet
-- extract: python scripts to extract words for corpora
+  - `build_model.py`: builds a tranlsation model given a config file
+  - `create_corpora.py`: creates train, tune, and test corpora given a config file
+  - `datamine.py`: goes through log of experiemnts and creates a csv file with the config and results
+  - `merge_trans.py`: merges as many files as you want into one file alternating lines from each, good for comparing translations
+  - `translate_docs.py`: translates a document with the moses decoder. Supply a protected.re file to not tokenize some regular expressions.
+  - `translate_po.py`: translates a po file or directory of po files
+  - `protected.re`: This file lists a set of regex's that the tokenizer will not tokenize. URLs and paths are good things to put in here. The regex `<*.>` (and any that replace < with another character(s)) will protect anything that is found between two angle brackets. This doesn't need to be used when running tests on your model, just when actually translating documents.
   - `po_to_corpus.py`: pulls words from the po files in the mongo docs
   - `split_dict.py`: splits dictionaries from http://www.dicts.info/uddl.php into parallel corpora
 
@@ -76,13 +64,19 @@ also include `merge_alignment.py` and `sbt2cooc.pl` from the mgiza `scripts/` di
   2. Use `mongo_to_po.py` to copy approved translations into the new doc directory tree
   3. This will inject the approved translations into all of the untranslated sentences
   
+Information about the different configuration options can best be found in the Moses documentation:
+http://www.statmt.org/moses/?n=FactoredTraining.TrainingParameters
+http://www.statmt.org/moses/?n=FactoredTraining.BuildReorderingModel
+http://www.statmt.org/moses/?n=FactoredTraining.AlignWords
+http://www.statmt.org/moses/?n=Moses.AdvancedFeatures
+http://www.statmt.org/moses/?n=FactoredTraining.ScorePhrases
 
 To use `build_model.py` do the following:
 Make sure that the config variables in the config file  pointing to the corpora and files are all correct
 Create an empty directory for the run files to go into and point to it as the archive_path at the top of the script
 Put all of the flags you want to run with (to run once just make all lists only have 1 or 0 items) in the lists in the config
 
-The structures.py and bash_command.py files were written by Sam Kleinman and are useful for reading yaml files and wrapping bash commands in python respectively
+The `structures.py` and `bash_command.p`y files were written by Sam Kleinman and are useful for reading yaml files and wrapping bash commands in python respectively
 
 ### Notes
 

@@ -22,7 +22,7 @@ def grab_data(json_file, out):
         - 'out': data file to write to
     '''
     
-    with open(json_path, "r") as f:
+    with open(json_file, "r") as f:
         d = json.load(f)
     score_list = re.split(", |/| \(|=|\)", d['BLUE'])    
     BLEU_score = score_list[0]
