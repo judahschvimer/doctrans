@@ -24,7 +24,7 @@ def grab_data(json_file, out):
     
     with open(json_file, "r") as f:
         d = json.load(f)
-    score_list = re.split(", |/| \(|=|\)", d['BLUE'])    
+    score_list = re.split(", |/| \(|=|\)", d['BLEU'])    
     BLEU_score = score_list[0]
     gram1 = score_list[1]
     gram2 = score_list[2]

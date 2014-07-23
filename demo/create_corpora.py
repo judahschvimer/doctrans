@@ -51,7 +51,7 @@ def verify_percs(d):
     :Returns:
         True if they're verified, false if there's a problem
     '''
-    for file_name,source in d['sources'].iteritems():
+    for file_name,source in d['sources'].items():
         if source['percent_train'] + source['percent_tune'] + source['percent_test'] != 100:
              logger.error("Percentages don't add up to 100")
              return False
@@ -106,7 +106,7 @@ def get_file_lengths(d):
     :Parameters:
         - 'd': configuration dictionary
     '''
-    for file_name,source in d['sources'].iteritems():
+    for file_name,source in d['sources'].items():
         with open(source['file_path'], 'r') as file:
             source['length'] = len(file.readlines())
 
@@ -121,7 +121,7 @@ def get_total_length(d, corpus_type):
     '''
     tot_length=0
     i=0
-    for file_name,source in d['sources'].iteritems():
+    for file_name,source in d['sources'].items():
         if source['percent_of_'+corpus_type] > 0 and source['length'] * 100 / source['percent_of_'+corpus_type] > tot_length:
             tot_length = source['length'] * 100 / source['percent_of_'+corpus_type]
         i += 1
@@ -150,7 +150,7 @@ def create_corpora(config):
         # finds the total length of the entire corpus
         tot_length = get_total_length(d, corpus_type)   
         i = 0
-        for fn,source in d['sources'].iteritems():
+        for fn,source in d['sources'].items():
             #finds how many copies of this file will make it the correct percentage of the full corpus
             source['num_copies'] = tot_length * source['percent_of_'+corpus_type] / 100 / source['length']
             final = False
