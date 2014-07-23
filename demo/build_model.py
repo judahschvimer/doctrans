@@ -8,6 +8,7 @@ import structures
 import datamine
 import logging
 import shutil
+import json
 from bash_command import command
 
 '''
@@ -291,7 +292,7 @@ def run_test_binarised(working_path,
     with Timer(d, 'test'):
         pcommand("{0}/bin/moses -f {1}/binarised-model/moses.ini  < {2}/{3}.true.en > {1}/{3}.translated.{4} 2> {1}/{3}.out".format(y.paths.moses, working_path, y.paths.aux_corpus_files, y.test.name, y.settings.foreign))
         c = pcommand("{0}/scripts/generic/multi-bleu.perl -lc {1}/{2}.true.{4} < {3}/{2}.translated.{4}".format(y.paths.moses, y.paths.aux_corpus_files, y.test.name, working_path, y.settings.foreign))
-        d["BLEU": c.out]
+        d["BLEU"] = c.out
         logger.info(c.out)
 
 def run_config(l_len, 
@@ -348,14 +349,10 @@ def run_config(l_len,
     run_binarise(working_path, l_lang, l_direct, l_orient, l_model, y, d)
     run_test_binarised(working_path, y, d)
 
-    logger.debug("test done")
     d["run_time_hms"] = str(datetime.timedelta(seconds=(time.time()-run_start)))
-    logger.debug("mid end")
     d["end_time"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-    logger.debug("end") 
     with open("{0}/{1}/{1}.json".format(y.paths.project,i),"w",1) as ilog:
-        logger.debug("write file")
-        ilog.write(d)    
+        json.dump(d, ilog)    
 
 def run_star(args):
     '''This function unpacks the list of parameters to run the configuration
@@ -407,7 +404,6 @@ def main():
     pool_outputs = pool.map(run_star, config)
     pool.close()
     pool.join()
-    logger.debug("all threads done")
     datamine.write_data(y.paths.project)
     command('cat {0}/data.csv | mail -s "Output" {1}'.format(y.paths.project, y.settings.email))
     
