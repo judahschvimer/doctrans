@@ -1,5 +1,19 @@
+#content {
+    padding: 10px;
+    padding-bottom: 80px;
+    height:100%;
+    min-height: 100%;
+    position: relative;
+}
+
+#footer {
+    width: 100%;
+    left:30px;
+    position: relative;
+    height: 30px;
+}
+
 td, th{
-    border: 1px solid black;
     text-align: left;
 }
 

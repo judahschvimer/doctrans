@@ -1,18 +1,11 @@
 {% import 'pagination.html' as pagination_macro %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Translation Pipeline</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}"></link>
-    <script type="text/javascript" src="{{url_for('static', filename='javascript/jquery.min.js') }}"></script>
-    <script type="text/javascript" src="{{url_for('static', filename='javascript/scripts.js')}}"></script>
-    <script type="text/javascript" src="{{url_for('static', filename='javascript/sorttable.js')}}"></script>
-</head>
-<body>
-    <ul id="navigation">
+{% extends "base.html" %}
+{% block title %}Index{% endblock %}
+{% block content %}
+<ul id="navigation">
     Username: <input id="username" value="{{username}}" readonly></input>
     Target Language: <input id="language" value="{{language}}" readonly></input>
-    <table class="sortable">
+    <table class="sortable table table-striped">
         <thead><tr>
             <th>File Name</th>
             <th>Fraction Approved</th>
@@ -38,5 +31,4 @@
     </table>
     </ul>
     {{pagination_macro.render_pagination(pagination)}}
-</body>
-</html>
+{% endblock %}

@@ -18,7 +18,7 @@ def merge_files(output, file_list, annotation_list):
         - 'file_list': The list of file names to merge
         - 'annotation_list': The list of annotations to use
     '''
-    with open(sys.argv[1], "w",1) as out:
+    with open(output, "w",1) as out:
         open_files = []
         for file in file_list:
             open_files.append(open(file,"r"))
