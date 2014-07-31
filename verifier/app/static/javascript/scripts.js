@@ -12,10 +12,10 @@ $(document).ready(function(){
 });
 
 function toggle_approved(){
-    var newtext = $(this).html() == "Show All" ? "Only Show Unapproved" : "Show All";
+    var newtext = $(this).html() == ("Show All" ? "Only Show Unapproved" : "Show All");
     $(this).html(newtext);
     $('tr').each(function(){
-        if($(this).children(".target").data("sentence").status == "approved'){
+        if($(this).children(".target").data("sentence").status == "approved"){
             $(this).hide();
         }
     });
