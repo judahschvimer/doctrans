@@ -43,7 +43,7 @@ td.reviewed_stat{
 }
 
 textarea {
-    width: 77%;
+    width: 75%;
     height: 100%;
     resize: none;
     background-color: #F0F0F0;
@@ -92,7 +92,6 @@ input.approval_check{
 
 input.approval_frac, input.review_frac{
     width: 40px;
-    color: blue;
     border: 0;
 }
 
@@ -105,4 +104,20 @@ table.sortable thead {
 
 div.pagination {
     text-align: center;
+}
+
+.btn,
+.btn:focus,
+.btn:active,
+.btn:hover
+{
+    margin-left: 5px;
+    outline:0px !important;
+    -webkit-appearance:none;
+}
+
+#show-unapproved-button {
+    color: #3b291f;
+    margin-bottom: 5px;
+    float: right;
 }

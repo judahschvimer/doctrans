@@ -21,8 +21,8 @@ def write_po(po_fn, db, all):
         - 'db': mongodb database 
         - 'all': whether or not you want all or just approved translations
     '''    
+    logger.info("writing "+po_fn)
     po = polib.pofile(po_fn)
-
     for entry in po.untranslated_entries():
         if all is False: 
             t = db['translations'].find({"status":"approved", "sentenceID":entry.tcomment})
@@ -33,11 +33,8 @@ def write_po(po_fn, db, all):
             logger.info("multiple approved translations with sentenceID: "+entry.tcomment)
             continue
         if t.count() is 1:        
-            logger.info(t[0])
-            entry.msgstr = t[0]['translation'].strip().encode("utf-8")
-            logger.info(entry.msgstr)
+            entry.msgstr = unicode(t[0]['target-sentence'].strip())
 
-    logger.info("po.translated_entries()\n {0}".format(po.translated_entries()))
     # Save translated po file into a new file.
     po.save(po_fn)
 
@@ -76,8 +73,8 @@ def main():
     if len(sys.argv) is 5 and sys.argv[4] is "all":
         all = True
 
-    db = MongoClient('localhost', int(sys.argv[4]))[sys.argv[5]]
-    write_entries(db, all, sys.argv[1])
+    db = MongoClient('localhost', int(sys.argv[2]))[sys.argv[3]]
+    write_entries(sys.argv[1], db, all)
 
 if __name__ == "__main__":
     main()

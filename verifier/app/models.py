@@ -271,7 +271,7 @@ class Sentence(object):
         f = File(oid=self.fileID, curr_db=self.db)
         if f.grab_lock(new_editor._id) == False:
             logger.error("can't edit without lock")
-            raise LockError("Can't edit without lock", f.file_path, new_editor.username, self.target_language)
+            raise LockError("Someone else is already editing this file", f.file_path, new_editor.username, self.target_language)
 
         audit("edit", self.userID, new_editor._id, self.state, new_target_sentence)
         self.increment_update_number()
@@ -301,7 +301,7 @@ class Sentence(object):
         f = File(oid=self.fileID, curr_db=self.db)
         if f.grab_lock(approver._id) == False:
             logger.error("can't approve without lock")
-            raise LockError("Can't approve without lock", f.file_path, approver.username, self.target_language)
+            raise LockError("Someone else is already editing this file", f.file_path, approver.username, self.target_language)
             
         prev_editor = User(oid=self.userID, curr_db=self.db)
         audit("approve", prev_editor._id, approver._id, self.state)
@@ -329,7 +329,7 @@ class Sentence(object):
         f = File(oid=self.fileID, curr_db=self.db)
         if f.grab_lock(unapprover._id) == False:
             logger.error("can't unapprove without lock")
-            raise LockError("Can't unapprove without lock", f.file_path, unapprover.username, self.target_language)
+            raise LockError("Someone else is already editing this file", f.file_path, unapprover.username, self.target_language)
         
         prev_editor = User(oid=self.userID, curr_db=self.db)
         audit("unapprove", prev_editor._id, unapprover._id, self.state)

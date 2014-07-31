@@ -3,11 +3,23 @@ $(document).ready(function(){
     $(".approve").on('click',approve);
     $(".unapprove").on('click',unapprove);
     $(".language").on('click',language);
+    $("#show-unapproved-button").on('click',toggle_approved);
     
     $(".target").each(check_approval);   
-    $(".target").each(check_editor);   
+    $(".target").each(check_editor);  
+    $('textarea').each(autosize); 
 
 });
+
+function toggle_approved(){
+    var newtext = $(this).html() == "Show All" ? "Only Show Unapproved" : "Show All";
+    $(this).html(newtext);
+    $('tr').each(function(){
+        if($(this).children(".target").data("sentence").status == "approved'){
+            $(this).hide();
+        }
+    });
+}
 
 function check_approval(){
     var approvers= $(this).data('sentence').approvers;

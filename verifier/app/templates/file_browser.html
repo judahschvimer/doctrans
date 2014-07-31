@@ -1,6 +1,9 @@
 {% import 'pagination.html' as pagination_macro %}
 {% extends "base.html" %}
-{% block title %}Index{% endblock %}
+{% block title %}Translation Pipeline{% endblock %}
+{% block header %}
+    <script type="text/javascript" src="{{url_for('static',filename='javascript/sorttable.js')}}"></script>
+{% endblock %}
 {% block content %}
 <ul id="navigation">
     Username: <input id="username" value="{{username}}" readonly></input>
@@ -8,8 +11,8 @@
     <table class="sortable table table-striped">
         <thead><tr>
             <th>File Name</th>
-            <th>Fraction Approved</th>
-            <th>Fraction Reviewed</th>
+            <th>Approved</th>
+            <th>Reviewed</th>
             <th></th>
         </tr></thead>
         {% for file in file_list %}
@@ -18,10 +21,10 @@
                     {{file['file_path']}}
                 </td>
                 <td sorttable_customkey={{file['num_approved']/file['num_sentences']}} class="approved_stat">
-                    Approved: <input readonly class="approval_frac" value="{{file['num_approved']}}/{{file['num_sentences']}}"></input>
+                    <input readonly class="approval_frac" value="{{file['num_approved']}}/{{file['num_sentences']}}"></input>
                 </td>
                 <td sorttable_customkey={{file['num_reviewed']/file['num_sentences']}} class="reviewed_stat">
-                    Reviewed: <input readonly class="review_frac" value="{{file['num_reviewed']}}/{{file['num_sentences']}}"></input>
+                    <input readonly class="review_frac" value="{{file['num_reviewed']}}/{{file['num_sentences']}}"></input>
                 </td>
                 <td class="editfile_button" >
                     <button class="editfile" id="{{file}}-editButton" onclick="location.href = '/file/{{username}}/{{language}}/{{file['file_path']|pathname2url}}';">Edit</button>

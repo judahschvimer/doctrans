@@ -1,11 +1,14 @@
 {% extends "base.html" %}
-{% block title %}Index{% endblock %}
+{% block title %}Translation Pipeline{% endblock %}
+{% block header %}
+    <script type="text/javascript" src="{{url_for('static',filename='javascript/jquery.autosize.min.js')}}"></script>
+{% endblock %}
 {% block content %}
     <ul id="navigation" data-userid='{{username|get_userID}}'>
     Username: <input id="username" value="{{username}}" readonly></input>
     Target Language: <input id="language" value="{{language}}" readonly></input>
     <input id="error-message" readonly value=""></input>
-    <p class="request_message"> </p>
+    <button class="show_unapproved btn btn-sm" id="show-unapproved-button">Only Show Unapproved</button>
     <table class = "table table-striped">
         {% for sentence in sentence_list %}
             <tr>
@@ -13,10 +16,10 @@
                 <td class="target" data-sentence='{{sentence|to_json}}'>
                     <textarea readonly class="target_sentence" id="{{sentence['sentenceID']}}-textarea">{{sentence['target_sentence']}}</textarea>
                     {% if sentence['status'] != 'approved' %}
-                            <button class="edit btn btn-success" id="{{sentence['sentenceID']}}-editButton">Edit</button>
-                            <button class="approve btn btn-success" id="{{sentence['sentenceID']}}-approveButton">Approve</button>
-                            <input class="approval_check btn btn-success" value="&#x2713;"></input>
-                            <input class="approval_num btn btn-success" value="{{sentence['approvers']|list_length}}"></input>
+                            <button class="edit btn btn-success btn-sm" id="{{sentence['sentenceID']}}-editButton">Edit</button>
+                            <button class="approve btn btn-success btn-sm" id="{{sentence['sentenceID']}}-approveButton">Approve</button>
+                            <input class="approval_check" value="&#x2713;"></input>
+                            <input class="approval_num" value="{{sentence['approvers']|list_length}}"></input>
                     {% endif %}
                 </td>
             </tr>
