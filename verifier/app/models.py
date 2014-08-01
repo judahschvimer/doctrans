@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 def get_sentences_in_file(fp, source_language, target_language, curr_db=db):
-    '''This function  gets all of the sentences in the given file 
+    '''This function  gets all of the sentences in the given file
     :Parameters:
         - 'db': database
         - 'fp': path to the file
@@ -18,13 +18,13 @@ def get_sentences_in_file(fp, source_language, target_language, curr_db=db):
         - cursor of sentences
     '''
     logger.debug(fp)
-    file = curr_db['files'].find_one({'source_language': source_language, 
-                                      'target_language': target_language, 
-                                      'file_path': fp}, 
+    file = curr_db['files'].find_one({'source_language': source_language,
+                                      'target_language': target_language,
+                                      'file_path': fp},
                                       {'_id':1})
     sentences = curr_db['translations'].find({'fileID': file[u'_id']},
-                                             {'_id': 1, 
-                                              'source_sentence': 1, 
+                                             {'_id': 1,
+                                              'source_sentence': 1,
                                               'target_sentence': 1,
                                               'approvers':1,
                                               'status':1,
@@ -32,18 +32,18 @@ def get_sentences_in_file(fp, source_language, target_language, curr_db=db):
     return sentences
 
 def get_languages(curr_db=db):
-    '''This function gets all of the unique target languages 
+    '''This function gets all of the unique target languages
     :Parameters:
         -'db': database
     :Returns:
         - cursor of languages
     '''
-    languages = curr_db['translations'].find().distinct('target_language')  
-    logger.info(languages)
+    languages = curr_db['translations'].find().distinct('target_language')
+    logger.debug(languages)
     return languages
 
 def get_fileIDs(source_language, target_language, curr_db=db):
-    '''This function  gets all of the file ids for a given pair of languages 
+    '''This function  gets all of the file ids for a given pair of languages
     :Parameters:
         - 'db': database
         - 'source_language': source language
@@ -51,13 +51,13 @@ def get_fileIDs(source_language, target_language, curr_db=db):
     :Returns:
         - cursor of fileids
     '''
-    return curr_db['files'].find({'source_language': source_language, 
+    return curr_db['files'].find({'source_language': source_language,
                                   'target_language': target_language},
-                                 {'_id': 1}).sort('priority',1) 
-    
+                                 {'_id': 1}).sort('priority',1)
+
 
 def get_files_for_page(page_number, num_files_per_page, fileIDs, curr_db=db):
-    '''This function gets all of the stats for a list of files 
+    '''This function gets all of the stats for a list of files
     :Parameters:
         - 'page_number': current page number
         - 'db': database
@@ -75,34 +75,33 @@ def get_files_for_page(page_number, num_files_per_page, fileIDs, curr_db=db):
         data = {'file_path': file.file_path, 'num_sentences': file.num_sentences, 'num_reviewed': file.num_reviewed(), "num_approved": file.num_approved()}
         if data['num_sentences'] != data['num_approved']:
             list.append(data)
-         
-    logger.info(len(list))
+
     return list
 
 def audit(action, last_editor, current_user, doc, new_target_sentence=None, curr_db=db):
-    ''' This function saves an audit of the event that occurred 
+    ''' This function saves an audit of the event that occurred
     :Parameters:
         - 'db': database
         - 'action': edit, approve, or unapprove
         - 'last editor': last person to edit the sentence before this action occurred
-        - 'current user': user who did the action 
+        - 'current user': user who did the action
         - 'doc': original python dictionary of old data
-        - 'new_target_sentence': new translation of the sentence, might be none if action is approved 
+        - 'new_target_sentence': new translation of the sentence, might be none if action is approved
     '''
     if action is 'edit':
         curr_db['audits'].insert({'action': action,
-                                          'last_editor': last_editor, 
+                                          'last_editor': last_editor,
                                           'current_user': current_user,
-                                          'original_document': doc, 
+                                          'original_document': doc,
                                           'new_target_sentence': new_target_sentence,
                                           'timestamp': datetime.datetime.utcnow() })
     else:
-        curr_db['audits'].insert({'action': action, 
+        curr_db['audits'].insert({'action': action,
                                           'last_editor': last_editor,
                                           'current_user': current_user,
-                                          'original_document': doc, 
+                                          'original_document': doc,
                                           'timestamp': datetime.datetime.utcnow() })
-        
+
 def find_file(source_language, target_language, file_path, curr_db=db):
     '''This function finds the oid of a file by it's languages and file_path, which should ideally be unique
     If these aren't unique this could create issues, but if they're not unique then you probably already have a problem
@@ -122,7 +121,7 @@ def find_file(source_language, target_language, file_path, curr_db=db):
 class File(object):
     '''This class models a file.
     It has a lock on it so no two people can edit the file at the same time. It has a priority to say how important translation it is
-    It also has a set of languages 
+    It also has a set of languages
     '''
     def __init__(self, source=None, oid=None, curr_db=db):
         self.db = curr_db
@@ -136,45 +135,43 @@ class File(object):
         if source is not None:
             for k,v in source.iteritems():
                 if not self.state.has_key(k):
-                    loggaer.debug(k)
+                    logger.error(k)
                     raise KeyError
 
             if source.has_key('source_language') and source.has_key('target_language') and source.has_key('file_path'):
-                s = find_file(source['source_language'], source['target_language'], source['file_path']) 
+                s = find_file(source['source_language'], source['target_language'], source['file_path'])
                 if s is not None:
                     source = s
             for k,v in source.items():
                 self.state[k] = v
             self.save()
         elif oid is not None:
-            logger.debug(oid)
             record = self.db['files'].find_one({'_id':oid})
             for k,v in record.items():
                 self.state[k] = v
-    
+
     def save(self):
-        logger.info(self.state)
         self.state[u'_id'] = self.db['files'].save(self.state)
 
     @property
     def file_path(self):
         return self.state[u'file_path']
-     
+
     @property
     def priority(self):
         return self.state[u'priority']
-    
+
     @property
     def target_language(self):
-        return self.state[u'target_language']    
+        return self.state[u'target_language']
 
     @property
     def source_language(self):
-        return self.state[u'source_language']    
+        return self.state[u'source_language']
 
     @property
     def _id(self):
-        return self.state[u'_id']        
+        return self.state[u'_id']
 
     def grab_lock(self, userID):
         '''This method tries to grab the lock on the file.
@@ -183,7 +180,7 @@ class File(object):
             - 'userID': _id of the user who is trying to grab the lock
         :Returns:
             - True or False if you grabbed the lock or not
-        ''' 
+        '''
         now = datetime.datetime.utcnow()
         if self.state[u'lock_exp'] < now:
             self.state[u'lock_exp'] = now+app.config['SESSION_LENGTH']
@@ -207,7 +204,7 @@ class File(object):
         self.state[u'num_sentences'] = self.db['translations'].find({'fileID':self._id}).count()
         self.save()
         return self.num_sentences
-    
+
     @property
     def num_sentences(self):
         return self.state[u'num_sentences']
@@ -219,35 +216,33 @@ class Sentence(object):
     '''
     def __init__(self, source=None, oid=None, curr_db=db):
         self.db = curr_db
-        self.state = { u'created_at': datetime.datetime.utcnow(), 
-                       u'userID': None, 
-                       u'source_language': None, 
-                       u'source_sentence': None, 
-                       u'sentence_num': -1, 
-                       u'fileID': None, 
-                       u'sentenceID': None, 
-                       u'target_sentence': None, 
-                       u'status': u'init', 
-                       u'update_number': 0, 
-                       u'target_language': None,  
+        self.state = { u'created_at': datetime.datetime.utcnow(),
+                       u'userID': None,
+                       u'source_language': None,
+                       u'source_sentence': None,
+                       u'sentence_num': -1,
+                       u'fileID': None,
+                       u'sentenceID': None,
+                       u'target_sentence': None,
+                       u'status': u'init',
+                       u'update_number': 0,
+                       u'target_language': None,
                        u'approvers' : [] }
 
         if source is not None:
-            logger.debug(source)
             for k,v in source.items():
                 if not self.state.has_key(k):
-                    logger.debug(k)
+                    logger.error(k)
                     raise KeyError
 
             for k,v in source.iteritems():
                 self.state[k] = v
             self.save()
         elif oid is not None:
-            logger.debug(oid)
             record = self.db['translations'].find_one({'_id':oid})
             for k,v in record.items():
                 self.state[k] = v
-    
+
     def check_lock(self, userID):
         f = File(oid=self.fileID, curr_db=self.db)
         return f.grab_lock(userID)
@@ -267,7 +262,7 @@ class Sentence(object):
         if self.status is 'approved':
             logger.error("can't edit approved sentence")
             raise MyError("Can't edit approved sentence", 403)
-        
+
         f = File(oid=self.fileID, curr_db=self.db)
         if f.grab_lock(new_editor._id) == False:
             logger.error("can't edit without lock")
@@ -283,8 +278,8 @@ class Sentence(object):
         new_editor.increment_num_reviewed()
         self.save()
         new_editor.save()
-        
- 
+
+
     def approve(self, approver):
         '''This function approves the current sentence.
         :Parameters:
@@ -297,12 +292,12 @@ class Sentence(object):
         if approver._id in self.approvers:
             logger.error('cannot approve twice')
             raise MyError("Can't approve sentence twice", 403)
-        
+
         f = File(oid=self.fileID, curr_db=self.db)
         if f.grab_lock(approver._id) == False:
             logger.error("can't approve without lock")
             raise LockError("Someone else is already editing this file", f.file_path, approver.username, self.target_language)
-            
+
         prev_editor = User(oid=self.userID, curr_db=self.db)
         audit("approve", prev_editor._id, approver._id, self.state)
         self.increment_update_number()
@@ -330,7 +325,7 @@ class Sentence(object):
         if f.grab_lock(unapprover._id) == False:
             logger.error("can't unapprove without lock")
             raise LockError("Someone else is already editing this file", f.file_path, unapprover.username, self.target_language)
-        
+
         prev_editor = User(oid=self.userID, curr_db=self.db)
         audit("unapprove", prev_editor._id, unapprover._id, self.state)
         self.increment_update_number()
@@ -340,111 +335,110 @@ class Sentence(object):
         prev_editor.save()
         unapprover.save()
         self.save()
-    
+
     def save(self):
-        logger.info(self.state)
         self.state[u'_id'] = self.db['translations'].save(self.state)
-  
+
     @property
     def target_language(self):
         return self.state[u'target_language']
-     
+
     @target_language.setter
-    def target_language(self, value): 
-        if value in (u'es', u'jp', u'cz'): 
+    def target_language(self, value):
+        if value in (u'es', u'jp', u'cz'):
            self.state[u'target_language'] = value
-        else: 
-           raise TypeError    
-    
+        else:
+           raise TypeError
+
     @property
     def source_language(self):
         return self.state[u'source_language']
-    
+
     @source_language.setter
-    def source_language(self, value): 
-        if value in (u'en'): 
+    def source_language(self, value):
+        if value in (u'en'):
            self.state[u'source_language'] = value
-        else: 
-           raise TypeError    
-    
+        else:
+           raise TypeError
+
     @property
     def userID(self):
         return self.state[u'userID']
-    
+
     @userID.setter
     def userID(self, value):
         self.state[u'userID'] = value
-    
+
     @property
     def status(self):
         return self.state[u'status']
-    
+
     @status.setter
-    def status(self, value): 
-        if value in (u'smt', u'reviewed', u'approved'): 
+    def status(self, value):
+        if value in (u'smt', u'reviewed', u'approved'):
            self.state[u'status'] = value
-        else: 
-           raise TypeError    
-    
+        else:
+           raise TypeError
+
     @property
     def fileID(self):
         return self.state[u'fileID']
-    
+
     @property
     def sentenceID(self):
         return self.state[u'sentenceID']
-    
+
     @property
     def sentence_num(self):
         return self.state[u'sentence_num']
-    
+
     @property
     def update_number(self):
         return self.state[u'update_number']
-    
+
     @property
     def create_at(self):
         return self.state[u'created_at']
-    
+
     @property
     def source_sentence(self):
         return self.state[u'source_sentence']
- 
+
     @property
     def target_sentence(self):
-        return self.state[u'target_sentence'] 
-    
+        return self.state[u'target_sentence']
+
     @target_sentence.setter
     def target_sentence(self, value):
         self.state[u'target_sentence'] = value
-    
+
     def increment_update_number(self):
-        self.state[u'update_number'] = self.state[u'update_number'] + 1 
-    
+        self.state[u'update_number'] = self.state[u'update_number'] + 1
+
     @property
     def approvers(self):
         return self.state[u'approvers']
-    
+
     def num_approves(self):
         return len(self.state[u'approvers'])
-    
+
     def add_approver(self, userID):
         if userID in self.state[u'approvers']:
             raise MyError("Can't approve sentence twice", 403)
         self.state[u'approvers'].append(userID)
         if self.num_approves() >= app.config['APPROVAL_THRESHOLD']:
-            self.status = "approved" 
+            self.status = "approved"
 
     def remove_approver(self, userID):
         if userID not in self.state[u'approvers']:
             raise MyError("Never approved sentence", 403)
-        
+
         self.state[u'approvers'].remove(userID)
         if self.num_approves() < app.config['APPROVAL_THRESHOLD']:
-            self.status = "reviewed" 
-   
+            self.status = "reviewed"
+
     def check_approver(self, userID):
-        return userID in self.state[u'approvers'] 
+        return userID in self.state[u'approvers']
 
 class User(object):
     ''' This class models a user.
@@ -453,16 +447,16 @@ class User(object):
     '''
     def __init__(self, source=None, oid=None, username=None, curr_db=db):
         self.db = curr_db
-        self.state = {u'username': username, 
-                      u'num_reviewed': 0, 
-                      u'num_user_approved': 0, 
+        self.state = {u'username': username,
+                      u'num_reviewed': 0,
+                      u'num_user_approved': 0,
                       u'num_got_approved': 0,
                       u'trust_level': 'basic' }
-        
+
         if source is not None:
             for k,v in source.iteritems():
                 if not self.state.has_key(k):
-                    logger.debug(k)
+                    logger.error(k)
                     raise KeyError
 
             for k,v in source.iteritems():
@@ -476,63 +470,63 @@ class User(object):
             record = self.db['users'].find_one({'username':username})
             for k,v in record.items():
                 self.state[k] = v
-         
-    def save(self): 
+
+    def save(self):
         logger.info(self.state)
-        self.state[u'_id'] = self.db['users'].save(self.state) 
-    
+        self.state[u'_id'] = self.db['users'].save(self.state)
+
     @property
     def _id(self):
-        return self.state[u'_id']  
-    
+        return self.state[u'_id']
+
     @property
     def username(self):
-        return self.state[u'username']  
+        return self.state[u'username']
 
     @property
     def num_translated(self):
-        return self.state[u'num_reviewed']  
-    
+        return self.state[u'num_reviewed']
+
     @property
     def num_reviewed(self):
         return self.state[u'num_reviewed']
-    
+
     def increment_num_reviewed(self):
         self.state[u'num_reviewed'] += 1
-    
+
     def decrement_num_reviewed(self):
         self.state[u'num_reviewed'] -= 1
-    
+
     @property
     def num_user_approved(self):
-        return self.state[u'num_user_approved']  
-    
+        return self.state[u'num_user_approved']
+
     def increment_user_approved(self):
         self.state[u'num_user_approved'] += 1
-    
+
     def decrement_user_approved(self):
         self.state[u'num_user_approved'] -= 1
-    
+
     @property
     def num_got_approved(self):
-        return self.state[u'num_got_approved'] 
+        return self.state[u'num_got_approved']
 
     def increment_got_approved(self):
         self.state[u'num_got_approved'] += 1
-    
+
     def decrement_got_approved(self):
         self.state[u'num_got_approved'] -= 1
 
     @property
     def trust_level(self):
         return self.state[u'trust_level']
-     
+
     @trust_level.setter
-    def trust_level(self, value): 
-        if value in (u'basic', u'partial', u'full'): 
+    def trust_level(self, value):
+        if value in (u'basic', u'partial', u'full'):
            self.state[u'trust_level'] = value
-        else: 
-           raise TypeError    
+        else:
+           raise TypeError
 
 class MyError(Exception):
     def __init__(self, msg, code):

@@ -18,22 +18,22 @@ def write_po(po_fn, db, all):
     ''' writes approved or all trnalstions to file
     :Parameters:
         - 'po_fn': the path to the current po file to write
-        - 'db': mongodb database 
+        - 'db': mongodb database
         - 'all': whether or not you want all or just approved translations
-    '''    
+    '''
     logger.info("writing "+po_fn)
     po = polib.pofile(po_fn)
     for entry in po.untranslated_entries():
-        if all is False: 
+        if all is False:
             t = db['translations'].find({"status":"approved", "sentenceID":entry.tcomment})
         else:
             t = db['translations'].find({"sentenceID":entry.tcomment})
-            
+
         if t.count() > 1:
             logger.info("multiple approved translations with sentenceID: "+entry.tcomment)
             continue
-        if t.count() is 1:        
-            entry.msgstr = unicode(t[0]['target-sentence'].strip())
+        if t.count() is 1:
+            entry.msgstr = unicode(t[0]['target_sentence'].strip())
 
     # Save translated po file into a new file.
     po.save(po_fn)
@@ -42,9 +42,9 @@ def write_entries( path, db, all):
     ''' goes through directory tree and writes po files to mongo
     :Parameters:
         - 'path': the path to the top level directory of the po_files
-        - 'db': mongodb database 
+        - 'db': mongodb database
         - 'all': whether or not you want all or just approved translations
-    '''    
+    '''
 
     if not os.path.exists(path):
         logger.error("{0} doesn't exist".format(path))
@@ -70,7 +70,7 @@ def main():
         return
     all = False
 
-    if len(sys.argv) is 5 and sys.argv[4] is "all":
+    if len(sys.argv) == 5 and sys.argv[4] == "all":
         all = True
 
     db = MongoClient('localhost', int(sys.argv[2]))[sys.argv[3]]
