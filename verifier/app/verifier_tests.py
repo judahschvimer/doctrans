@@ -80,7 +80,7 @@ class TestCase(unittest.TestCase):
 
     '''
     db_init_files = ['test_files/translations.json','test_files/users.json', 'test_files/files.json']
-    
+
     def __init__(self, *args, **kwargs):
         super(TestCase, self).__init__(*args, **kwargs)
         self.db_inst = MongoTemporaryInstance.get_instance()
@@ -91,17 +91,17 @@ class TestCase(unittest.TestCase):
         '''This method wraps around the sentence creator to provide the correct db'''
         s = models.Sentence(oid=id, curr_db=self.db)
         return s
-    
+
     def user(self, id=None):
         '''This method wraps around the user creator to provide the correct db'''
         u = models.User(oid=id, curr_db=self.db)
         return u
-    
+
     def file(self, id=None):
         '''This method wraps around the file creator to provide the correct db'''
         f = models.File(oid=id, curr_db=self.db)
         return f
-   
+
     def jumble_data(self):
         '''This method does random updates to the data'''
         for i in range(randint(0,5)):
@@ -111,7 +111,7 @@ class TestCase(unittest.TestCase):
                 s.edit(u,"foo{0}".format(i))
             except Exception:
                 continue
- 
+
         for i in range(randint(0,3)):
             try:
                 s = self.sentence(id='s{0}'.format(randint(1,3)))
@@ -119,10 +119,10 @@ class TestCase(unittest.TestCase):
                 s.approve(u)
             except Exception:
                 continue
- 
- 
+
+
     def setUp(self):
-        '''This method sets up the test by deleting all of the tables in the database and reloading it'''
+        '''This method sets up the test by deleting all of the databases and reloading them'''
         super(TestCase, self).setUp()
 
         for db_name in self.client.database_names():
@@ -172,13 +172,13 @@ class TestCase(unittest.TestCase):
         s_pre = self.sentence(id=u's1')
         judah_pre = self.user(id=u'u2')
         s_pre.approve(judah_pre)
- 
+
         s = self.sentence(id=u's1')
         s_old = self.sentence(id=u's1')
         judah = self.user(id=u'u2')
         judah_old = self.user(id=u'u2')
         moses_old = self.user(id=u'u1')
-        s.unapprove(judah) 
+        s.unapprove(judah)
         s = self.sentence(id=u's1')
         judah = self.user(id=u'u2')
         moses = self.user(id=u'u1')
@@ -193,7 +193,7 @@ class TestCase(unittest.TestCase):
         s = self.sentence(id=u's3')
         judah = self.user(id=u'u2')
         wisdom = self.user(id=u'u3')
-        s.approve(judah) 
+        s.approve(judah)
         s = self.sentence(id=u's3')
         self.assertEquals(s.status, 'approved')
 
@@ -202,36 +202,36 @@ class TestCase(unittest.TestCase):
         s_pre = self.sentence(id=u's1')
         judah_pre = self.user(id=u'u2')
         s_pre.approve(judah_pre)
-        
+
         s = self.sentence(id=u's1')
         judah = self.user(id=u'u2')
         with self.assertRaises(Exception):
-            s.approve(judah) 
+            s.approve(judah)
 
     def test_approve_own_edit(self):
         '''This method tests that you can't approve a setence you edited last'''
         s_pre = self.sentence(id=u's1')
         judah_pre = self.user(id=u'u2')
         s_pre.edit(judah_pre, "edited")
-        
+
         s = self.sentence(id=u's1')
         judah = self.user(id=u'u2')
         with self.assertRaises(Exception):
-            s.approve(judah) 
-        
+            s.approve(judah)
+
     def test_unapprove_no_approve(self):
         '''This method tests that you can't unapprove a sentence you haven't approved'''
         s = self.sentence(id=u's1')
         judah = self.user(id=u'u2')
         with self.assertRaises(Exception):
-            s.unapprove(judah) 
+            s.unapprove(judah)
 
     def test_approve_own_edit(self):
         '''This method tests that you can't approve a setence you edited last'''
         s_pre = self.sentence(id=u's1')
         judah_pre = self.user(id=u'u2')
         s_pre.edit(judah_pre, "edited")
-        
+
         s = self.sentence(id=u's1')
         judah = self.user(id=u'u2')
         with self.assertRaises(Exception):
@@ -242,18 +242,18 @@ class TestCase(unittest.TestCase):
         s_pre = self.sentence(id=u's1')
         judah_pre = self.user(id=u'u2')
         s_pre.approve(judah_pre)
-        
+
         s = self.sentence(id=u's1')
         judah = self.user(id=u'u2')
         with self.assertRaises(Exception):
-            s.edit(judah, "edited") 
+            s.edit(judah, "edited")
 
     def test_edit_no_change(self):
         '''This method tests that you can't make an edit with no change'''
         s = self.sentence(id=u's1')
         judah = self.user(id=u'u2')
         with self.assertRaises(Exception):
-            s.edit(judah, s.target_sentence) 
+            s.edit(judah, s.target_sentence)
 
     def test_edit_lock(self):
         '''This method tests that you can't make an edit with a lock'''
@@ -262,7 +262,7 @@ class TestCase(unittest.TestCase):
         s.edit(judah, "foo bar")
         wisdom = self.user(id=u'u3')
         with self.assertRaises(Exception):
-            s.edit(wisdom, s.target_sentence) 
+            s.edit(wisdom, s.target_sentence)
 
 if __name__ == '__main__':
     unittest.main()

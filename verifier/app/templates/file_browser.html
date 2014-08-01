@@ -1,6 +1,6 @@
 {% import 'pagination.html' as pagination_macro %}
 {% extends "base.html" %}
-{% block title %}Translation Pipeline{% endblock %}
+{% block title %}File Browser{% endblock %}
 {% block header %}
     <script type="text/javascript" src="{{url_for('static',filename='javascript/sorttable.js')}}"></script>
 {% endblock %}
@@ -27,7 +27,7 @@
                     <input readonly class="review_frac" value="{{file['num_reviewed']}}/{{file['num_sentences']}}"></input>
                 </td>
                 <td class="editfile_button" >
-                    <button class="editfile" id="{{file}}-editButton" onclick="location.href = '/file/{{username}}/{{language}}/{{file['file_path']|pathname2url}}';">Edit</button>
+                    <button class="editfile btn btn-success btn-sm" id="{{file}}-editButton" onclick="location.href = '/file/{{username}}/{{language}}/{{file['file_path']|pathname2url}}';">Edit</button>
                 </td>
             </tr>
         {% endfor %}

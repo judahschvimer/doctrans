@@ -4,19 +4,19 @@ $(document).ready(function(){
     $(".unapprove").on('click',unapprove);
     $(".language").on('click',language);
     $("#show-unapproved-button").on('click',toggle_approved);
-    
-    $(".target").each(check_approval);   
-    $(".target").each(check_editor);  
-    $('textarea').each(autosize); 
+
+    $(".target").each(check_approval);
+    $(".target").each(check_editor);
+    $('textarea').autosize();
 
 });
 
 function toggle_approved(){
-    var newtext = $(this).html() == ("Show All" ? "Only Show Unapproved" : "Show All");
+    var newtext = ($(this).html() == "Show All" ? "Only Show Unapproved" : "Show All");
     $(this).html(newtext);
     $('tr').each(function(){
         if($(this).children(".target").data("sentence").status == "approved"){
-            $(this).hide();
+            $(this).toggle();
         }
     });
 }
@@ -46,17 +46,17 @@ function edit_html(e){
     e.parent().children(".target_sentence").attr("readOnly",false);
     e.parent().children(".target_sentence").css("backgroundColor", "#FFFFFF");
     e.parent().children(".edit").off('click').on('click',save);
-    
+
 }
 
 function toggle_message(msg, color){
 
-    $('#error-message').val(msg);   
-    $('#error-message').css("color",color);  
+    $('#error-message').val(msg);
+    $('#error-message').css("color",color);
     $("#error-message").show()
     setTimeout(function() {
             $("#error-message").hide()
-    }, 3000); 
+    }, 3000);
 
 }
 
@@ -78,14 +78,14 @@ function save(){
                         toggle_message(data.msg, "green");
                    },
           error: function(data, textStatus, jqxhr)
-                   {  
+                   {
                         toggle_message("Error: "+data.responseJSON.msg, "red");
                    }
     });
 }
 
 function approve(){
-    approve_html($(this));   
+    approve_html($(this));
     var $this=$(this);
     var s=$(this).parent().data("sentence");
     var new_content={"approver": $("#username").val()}
@@ -146,10 +146,10 @@ function unapprove(){
                         approve_html($this);
                    }
     });
-}  
+}
 
 function unapprove_html(e){
-    e.parent().children(".edit").attr("disabled",false); 
+    e.parent().children(".edit").attr("disabled",false);
     e.parent().children(".unapprove").html("Approve");
     e.parent().children(".edit").off('click').on('click', edit);
     e.parent().children(".unapprove").off('click').on('click', approve);

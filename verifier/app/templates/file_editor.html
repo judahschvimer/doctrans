@@ -1,7 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Translation Pipeline{% endblock %}
+{% block title %}File Editor{% endblock %}
 {% block header %}
-    <script type="text/javascript" src="{{url_for('static',filename='javascript/jquery.autosize.min.js')}}"></script>
 {% endblock %}
 {% block content %}
     <ul id="navigation" data-userid='{{username|get_userID}}'>
