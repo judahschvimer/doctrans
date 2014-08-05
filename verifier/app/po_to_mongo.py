@@ -4,6 +4,7 @@ import os.path
 from pymongo import MongoClient
 import models
 import logging
+import re
 
 '''
 This module takes the po files and writes the sentences to mongodb
@@ -16,7 +17,7 @@ Usage: python po_to_mongo /path/to/*.po username status language
 logger = logging.getLogger('po_to_mongo')
 logging.basicConfig(level=logging.DEBUG)
 
-def write_mongo(po_fn, userID, status, language, po_root):
+def write_mongo(po_fn, userID, status, language, po_root, db):
     '''write a po_file to mongodb
     :Parameters:
         - 'po_fn': the file name of the current pofile
@@ -31,26 +32,34 @@ def write_mongo(po_fn, userID, status, language, po_root):
     f = models.File({ u'file_path': rel_fn,
                       u'priority': 0,
                       u'source_language': u'en',
-                      u'target_language': language })
+                      u'target_language': language }, curr_db=db)
     i = 0
+    #reg = re.compile('^:.*:`(?!.*<.*>.*)[^`]*`$')
+    reg = re.compile('^:.*:`(?!.*<.*>.*)[^`]*`$')
     for entry in po.translated_entries():
-        t = models.Sentence({ u'source_language': u'en', 
-                              u'source_sentence': entry.msgid.encode('utf-8'), 
-                              u'sentenceID': entry.tcomment.encode('utf-8'), 
-                              u'sentence_num': i, 
-                              u'fileID': f._id, 
-                              u'target_sentence': entry.msgstr.encode('utf-8'), 
-                              u'target_language': language, 
+        sentence_status = status
+        match = re.match(reg, entry.msgstr.encode('utf-8'))
+        if match is not None and match.group() == entry.msgstr.encode('utf-8'):
+            logger.debug(entry.msgstr.encode('utf-8'))
+            sentence_status = "approved"
+
+        t = models.Sentence({ u'source_language': u'en',
+                              u'source_sentence': entry.msgid.encode('utf-8'),
+                              u'sentenceID': entry.tcomment.encode('utf-8'),
+                              u'sentence_num': i,
+                              u'fileID': f._id,
+                              u'target_sentence': entry.msgstr.encode('utf-8'),
+                              u'target_language': language,
                               u'userID': userID,
-                              u'status': status, 
-                              u'update_number': 0 })
-        logger.info(t.state)
+                              u'status': sentence_status,
+                              u'update_number': 0 }, curr_db=db)
+        #logger.debug(t.state)
         t.save()
         i += 1
     f.get_num_sentences()
 
-def extract_entries(db, path, username, status, language):
-    '''go through directories and write the po file to mongo 
+def extract_entries(path, username, status, language, port, db_name):
+    '''go through directories and write the po file to mongo
     :Parameters:
         - 'db': the database that you want to write to
         - 'path': the path to the po_files
@@ -62,12 +71,12 @@ def extract_entries(db, path, username, status, language):
     if not os.path.exists(path):
         logger.error("{0} doesn't exist".format(path))
         return
-    
-    logger.debug(db)
+
+    db = MongoClient('localhost', port)[db_name]
     userID = db['users'].find_one({'username': username})[u'_id']
 
     if os.path.isfile(path):
-        write_mongo(path, userID, status, language, os.path.dirname(path))
+        write_mongo(path, userID, status, language, os.path.dirname(path), db)
         return
 
     # path is a directory now
@@ -77,15 +86,14 @@ def extract_entries(db, path, username, status, language):
     for root, dirs, files in os.walk(path):
         for filename in files:
             if filename.endswith(".po"):
-                write_mongo(os.path.join(root,filename), userID, status, language, path)
+                write_mongo(os.path.join(root,filename), userID, status, language, path, db)
 
 
 def main():
     if len(sys.argv) < 7:
         print "Usage: python", ' '.join(sys.argv), "<path/to/*.po> <username> <status> <language> <port> <dbname>"
         return
-    db = MongoClient('localhost', int(sys.argv[5]))[sys.argv[6]]
-    extract_entries(db, sys.argv[1],sys.argv[2], sys.argv[3], sys.argv[4])
+    extract_entries(sys.argv[1],sys.argv[2], sys.argv[3], sys.argv[4], int(sys.argv[5]), sys.argv[6])
 
 if __name__ == "__main__":
     main()
