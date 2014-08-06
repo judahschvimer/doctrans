@@ -34,13 +34,11 @@ def write_mongo(po_fn, userID, status, language, po_root, db):
                       u'source_language': u'en',
                       u'target_language': language }, curr_db=db)
     i = 0
-    #reg = re.compile('^:.*:`(?!.*<.*>.*)[^`]*`$')
-    reg = re.compile('^:.*:`(?!.*<.*>.*)[^`]*`$')
+    reg = re.compile('^:[a-zA-Z0-9]+:`(?!.*<.*>.*)[^`]*`$')
     for entry in po.translated_entries():
         sentence_status = status
         match = re.match(reg, entry.msgstr.encode('utf-8'))
         if match is not None and match.group() == entry.msgstr.encode('utf-8'):
-            logger.debug(entry.msgstr.encode('utf-8'))
             sentence_status = "approved"
 
         t = models.Sentence({ u'source_language': u'en',
@@ -53,7 +51,6 @@ def write_mongo(po_fn, userID, status, language, po_root, db):
                               u'userID': userID,
                               u'status': sentence_status,
                               u'update_number': 0 }, curr_db=db)
-        #logger.debug(t.state)
         t.save()
         i += 1
     f.get_num_sentences()
